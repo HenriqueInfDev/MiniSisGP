@@ -26,7 +26,7 @@ class SupplierRepository:
 
     def get_all(self):
         conn = self.db_manager.get_connection()
-        return conn.execute("SELECT ID, NOME_FANTASIA FROM FORNECEDOR ORDER BY NOME_FANTASIA").fetchall()
+        return conn.execute("SELECT ID, RAZAO_SOCIAL, NOME_FANTASIA, CNPJ, TELEFONE, EMAIL, CIDADE, UF FROM FORNECEDOR ORDER BY NOME_FANTASIA").fetchall()
 
     def get_by_id(self, supplier_id):
         conn = self.db_manager.get_connection()
@@ -74,6 +74,6 @@ class SupplierRepository:
 
         column = field_map.get(search_field, "NOME_FANTASIA")
 
-        query = f"SELECT ID, RAZAO_SOCIAL, NOME_FANTASIA, CNPJ, TELEFONE, CIDADE, UF FROM FORNECEDOR WHERE {column} LIKE ?"
+        query = f"SELECT ID, RAZAO_SOCIAL, NOME_FANTASIA, CNPJ, TELEFONE, EMAIL, CIDADE, UF FROM FORNECEDOR WHERE {column} LIKE ?"
 
         return conn.execute(query, (f'%{search_text}%',)).fetchall()

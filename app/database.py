@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import atexit
+import platform
 
 class DatabaseManager:
     _instance = None
@@ -21,8 +22,14 @@ class DatabaseManager:
     def _get_db_path(self):
         if os.environ.get("MINISIS_ENV") == "test":
             return ":memory:"
-        # Adapt C:\MiniSis\OP\Dados\MINISISOP.DB to the sandbox environment
-        return "/MiniSis/OP/Dados/MINISISOP.DB"
+
+        if platform.system() == "Windows":
+            # User's specified path for Windows
+            return r"C:\MiniSis\Ordem de Produção\Dados\DADOS.DB"
+        else:
+            # A compatible path for other OSes (like the sandbox)
+            home_dir = os.path.expanduser("~")
+            return os.path.join(home_dir, "MiniSis", "Ordem de Producao", "Dados", "DADOS.DB")
 
     def initialize_database(self):
         is_memory_db = self.db_path == ":memory:"
@@ -185,16 +192,11 @@ class DatabaseManager:
             cursor.execute('ALTER TABLE ENTRADANOTA ADD COLUMN DATA_DIGITACAO TEXT')
             cursor.execute('UPDATE ENTRADANOTA SET DATA_DIGITACAO = DATA_ENTRADA WHERE DATA_DIGITACAO IS NULL')
 
-        if 'FORNECEDOR' in columns_info and columns_info['FORNECEDOR']['type'] == 'TEXT':
-            # This migration is now part of the table rename, but we keep the logic just in case
-            pass
-
         cursor.execute("PRAGMA table_info(FORNECEDOR)")
         supplier_columns = {col[1]: col for col in cursor.fetchall()}
 
         if 'NOME' in supplier_columns and 'RAZAO_SOCIAL' not in supplier_columns:
-            # This should be handled by the table rename, but we can adapt if needed
-            pass
+            cursor.execute('ALTER TABLE FORNECEDOR RENAME COLUMN NOME TO RAZAO_SOCIAL')
 
         address_columns = ['LOGRADOURO', 'NUMERO', 'COMPLEMENTO', 'BAIRRO', 'CIDADE', 'UF', 'CEP']
         for col in address_columns:

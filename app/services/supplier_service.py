@@ -18,7 +18,7 @@ class SupplierService:
             if new_id:
                 return {"success": True, "data": new_id, "message": "Fornecedor adicionado com sucesso."}
             else:
-                return {"success": False, "message": "Fornecedor with this Razão Social already exists."}
+                return {"success": False, "message": "Já existe um fornecedor com esta Razão Social."}
         except Exception as e:
             return {"success": False, "message": f"Erro ao adicionar fornecedor: {e}"}
 
@@ -50,7 +50,7 @@ class SupplierService:
             if self.supplier_repository.update(supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address):
                 return {"success": True, "message": "Fornecedor atualizado com sucesso."}
             else:
-                return {"success": False, "message": "Fornecedor with this Razão Social already exists."}
+                return {"success": False, "message": "Já existe um fornecedor com esta Razão Social."}
         except Exception as e:
             return {"success": False, "message": f"Erro ao atualizar fornecedor: {e}"}
 
