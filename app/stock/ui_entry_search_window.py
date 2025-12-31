@@ -4,11 +4,13 @@ from PySide6.QtWidgets import (
     QComboBox, QPushButton, QTableView, QHeaderView, QAbstractItemView
 )
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from . import entry_operations
+from ..services.stock_service import StockService
+from ..ui_utils import show_error_message
 
 class EntrySearchWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.stock_service = StockService()
         self.edit_window = None
         self.setWindowTitle("Pesquisa de Entradas de Insumo")
         self.setGeometry(200, 200, 900, 700)
@@ -18,7 +20,6 @@ class EntrySearchWindow(QWidget):
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
 
-        # Grupo de Pesquisa
         search_group = QGroupBox("Pesquisa")
         search_layout = QHBoxLayout()
         self.search_field = QComboBox()
@@ -37,17 +38,16 @@ class EntrySearchWindow(QWidget):
         search_group.setLayout(search_layout)
         main_layout.addWidget(search_group)
 
-        # Tabela de Resultados
         results_group = QGroupBox("Resultados")
         results_layout = QVBoxLayout()
         self.table_view = QTableView()
         self.table_model = QStandardItemModel()
-        self.table_model.setHorizontalHeaderLabels(["ID", "Data Entrada", "Fornecedor", "Nº Nota", "Valor Total", "Status"])
+        self.table_model.setHorizontalHeaderLabels(["ID", "Data Entrada", "Data Digitação", "Fornecedor", "Nº Nota", "Valor Total", "Status"])
         self.table_view.setModel(self.table_model)
 
         header = self.table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.Stretch) # Fornecedor
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
 
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -63,18 +63,22 @@ class EntrySearchWindow(QWidget):
         self.table_model.removeRows(0, self.table_model.rowCount())
         search_term = self.search_term.text()
         search_field = self.search_field.currentText()
-        entries = entry_operations.list_entries(search_term, search_field)
+        response = self.stock_service.list_entries(search_term, search_field)
 
-        for entry in entries:
-            row = [
-                QStandardItem(str(entry['ID'])),
-                QStandardItem(entry.get('DATA_ENTRADA', '')),
-                QStandardItem(entry.get('FORNECEDOR', '')),
-                QStandardItem(entry.get('NUMERO_NOTA', '')),
-                QStandardItem(f"{entry.get('VALOR_TOTAL', 0):.2f}" if entry.get('VALOR_TOTAL') is not None else "N/A"),
-                QStandardItem(entry.get('STATUS', ''))
-            ]
-            self.table_model.appendRow(row)
+        if response["success"]:
+            for entry in response["data"]:
+                row = [
+                    QStandardItem(str(entry['ID'])),
+                    QStandardItem(entry.get('DATA_ENTRADA', '')),
+                    QStandardItem(entry.get('DATA_DIGITACAO', '')),
+                    QStandardItem(entry.get('FORNECEDOR', '')),
+                    QStandardItem(entry.get('NUMERO_NOTA', '')),
+                    QStandardItem(f"{entry.get('VALOR_TOTAL', 0):.2f}" if entry.get('VALOR_TOTAL') is not None else "N/A"),
+                    QStandardItem(entry.get('STATUS', ''))
+                ]
+                self.table_model.appendRow(row)
+        else:
+            show_error_message(self, response["message"])
 
     def open_new_entry_window(self):
         self.show_edit_window(entry_id=None)

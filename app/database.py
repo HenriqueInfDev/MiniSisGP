@@ -116,12 +116,20 @@ class DatabaseManager:
         CREATE TABLE IF NOT EXISTS TENTRADANOTA (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             DATA_ENTRADA TEXT NOT NULL,
+            DATA_DIGITACAO TEXT,
             FORNECEDOR TEXT,
             NUMERO_NOTA TEXT,
             VALOR_TOTAL REAL,
             STATUS TEXT NOT NULL CHECK(STATUS IN ('Em Aberto', 'Finalizada'))
         )
         ''')
+        # Migração para adicionar a coluna DATA_DIGITACAO se não existir
+        cursor.execute("PRAGMA table_info(TENTRADANOTA)")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'DATA_DIGITACAO' not in columns:
+            cursor.execute('ALTER TABLE TENTRADANOTA ADD COLUMN DATA_DIGITACAO TEXT')
+            # Popula a nova coluna com a data de entrada para registros existentes
+            cursor.execute('UPDATE TENTRADANOTA SET DATA_DIGITACAO = DATA_ENTRADA WHERE DATA_DIGITACAO IS NULL')
         # Tabela de Itens da Nota de Entrada (Detalhe)
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS TENTRADANOTA_ITENS (

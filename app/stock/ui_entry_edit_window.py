@@ -2,16 +2,17 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout, QLineEdit,
     QPushButton, QMessageBox, QHeaderView, QTableWidget, QTableWidgetItem,
-    QLabel, QDateEdit, QAbstractItemView, QDoubleSpinBox
+    QLabel, QDateEdit, QAbstractItemView, QDateTimeEdit
 )
-from PySide6.QtCore import QDate, Qt
-from . import entry_operations
+from PySide6.QtCore import QDate, Qt, QDateTime
+from ..services.stock_service import StockService
 from ..item.ui_search_window import SearchWindow
-from ..ui_utils import NumericTableWidgetItem
+from ..ui_utils import NumericTableWidgetItem, show_error_message
 
 class EntryEditWindow(QWidget):
     def __init__(self, entry_id=None):
         super().__init__()
+        self.stock_service = StockService()
         self.current_entry_id = entry_id
         self.search_item_window = None
 
@@ -28,7 +29,6 @@ class EntryEditWindow(QWidget):
     def setup_ui(self):
         self.main_layout = QVBoxLayout(self)
 
-        # Botões do Cabeçalho
         header_layout = QHBoxLayout()
         self.save_button = QPushButton("Salvar")
         self.save_button.clicked.connect(self.save_entry)
@@ -39,25 +39,26 @@ class EntryEditWindow(QWidget):
         header_layout.addWidget(self.finalize_button)
         self.main_layout.addLayout(header_layout)
 
-        # Formulário Principal
         form_group = QGroupBox("Dados da Nota de Entrada")
         form = QFormLayout()
         self.entry_id_display = QLabel("(Nova)")
         self.date_input = QDateEdit(calendarPopup=True)
         self.date_input.setDate(QDate.currentDate())
+        self.typing_date_input = QDateTimeEdit()
+        self.typing_date_input.setReadOnly(True)
         self.supplier_input = QLineEdit()
         self.note_number_input = QLineEdit()
         self.status_display = QLabel("Em Aberto")
 
         form.addRow("ID da Entrada:", self.entry_id_display)
         form.addRow("Data da Entrada:", self.date_input)
+        form.addRow("Data de Digitação:", self.typing_date_input)
         form.addRow("Fornecedor:", self.supplier_input)
         form.addRow("Número da Nota:", self.note_number_input)
         form.addRow("Status:", self.status_display)
         form_group.setLayout(form)
         self.main_layout.addWidget(form_group)
 
-        # Itens da Nota
         items_group = QGroupBox("Insumos da Nota")
         items_layout = QVBoxLayout()
         self.items_table = QTableWidget()
@@ -73,13 +74,15 @@ class EntryEditWindow(QWidget):
         items_layout.addWidget(self.items_table)
 
         buttons_layout = QHBoxLayout()
-        add_button = QPushButton("Adicionar Insumo...")
-        add_button.clicked.connect(self.open_item_search)
-        remove_button = QPushButton("Remover Insumo")
-        remove_button.clicked.connect(self.remove_item)
+        self.add_item_button = QPushButton("Adicionar Insumo...")
+        self.add_item_button.setObjectName("add_item_button")
+        self.add_item_button.clicked.connect(self.open_item_search)
+        self.remove_item_button = QPushButton("Remover Insumo")
+        self.remove_item_button.setObjectName("remove_item_button")
+        self.remove_item_button.clicked.connect(self.remove_item)
         buttons_layout.addStretch()
-        buttons_layout.addWidget(add_button)
-        buttons_layout.addWidget(remove_button)
+        buttons_layout.addWidget(self.add_item_button)
+        buttons_layout.addWidget(self.remove_item_button)
         items_layout.addLayout(buttons_layout)
 
         items_group.setLayout(items_layout)
@@ -90,6 +93,7 @@ class EntryEditWindow(QWidget):
         self.setWindowTitle("Nova Entrada de Insumo")
         self.entry_id_display.setText("(Nova)")
         self.date_input.setDate(QDate.currentDate())
+        self.typing_date_input.setDateTime(QDateTime.currentDateTime())
         self.supplier_input.clear()
         self.note_number_input.clear()
         self.status_display.setText("Em Aberto")
@@ -110,28 +114,30 @@ class EntryEditWindow(QWidget):
             })
 
         if self.current_entry_id:
-            # Atualizar mestre e itens
-            entry_operations.update_entry_master(self.current_entry_id, date, supplier, note_number)
-            entry_operations.update_entry_items(self.current_entry_id, items)
-            QMessageBox.information(self, "Sucesso", "Nota de entrada atualizada.")
-        else:
-            # Criar nova entrada e depois adicionar itens
-            new_id = entry_operations.create_entry(date, supplier, note_number)
-            if new_id:
-                self.current_entry_id = new_id
-                entry_operations.update_entry_items(new_id, items)
-                self.setWindowTitle(f"Editando Entrada #{new_id}")
-                self.entry_id_display.setText(str(new_id))
-                QMessageBox.information(self, "Sucesso", f"Nota de entrada #{new_id} criada.")
+            response = self.stock_service.update_entry(self.current_entry_id, date, supplier, note_number, items)
+            if response["success"]:
+                QMessageBox.information(self, "Sucesso", response["message"])
             else:
-                QMessageBox.critical(self, "Erro", "Não foi possível criar a nota de entrada.")
+                show_error_message(self, response["message"])
+        else:
+            response = self.stock_service.create_entry(date, supplier, note_number)
+            if response["success"]:
+                self.current_entry_id = response["data"]
+                self.stock_service.update_entry(self.current_entry_id, date, supplier, note_number, items)
+                self.setWindowTitle(f"Editando Entrada #{self.current_entry_id}")
+                self.entry_id_display.setText(str(self.current_entry_id))
+                QMessageBox.information(self, "Sucesso", response["message"])
+            else:
+                show_error_message(self, response["message"])
 
     def load_entry_data(self):
-        details = entry_operations.get_entry_details(self.current_entry_id)
-        if details:
+        response = self.stock_service.get_entry_details(self.current_entry_id)
+        if response["success"]:
+            details = response["data"]
             master = details['master']
             self.entry_id_display.setText(str(master['ID']))
             self.date_input.setDate(QDate.fromString(master['DATA_ENTRADA'], "yyyy-MM-dd"))
+            self.typing_date_input.setDateTime(QDateTime.fromString(master['DATA_DIGITACAO'], "yyyy-MM-dd HH:mm:ss"))
             self.supplier_input.setText(master.get('FORNECEDOR', ''))
             self.note_number_input.setText(master.get('NUMERO_NOTA', ''))
             self.status_display.setText(master.get('STATUS', ''))
@@ -142,6 +148,9 @@ class EntryEditWindow(QWidget):
 
             if master.get('STATUS') == 'Finalizada':
                 self.set_read_only(True)
+        else:
+            show_error_message(self, response["message"])
+            self.close()
 
     def open_item_search(self):
         if self.search_item_window and self.search_item_window.isVisible():
@@ -152,7 +161,6 @@ class EntryEditWindow(QWidget):
         self.search_item_window.show()
 
     def add_item_from_search(self, item_data):
-        # Verificar se o item já está na tabela
         for row in range(self.items_table.rowCount()):
             if int(self.items_table.item(row, 0).text()) == item_data['ID']:
                 QMessageBox.warning(self, "Atenção", "Este insumo já está na lista.")
@@ -181,7 +189,6 @@ class EntryEditWindow(QWidget):
         total = item['QUANTIDADE'] * item['VALOR_UNITARIO']
         self.items_table.setItem(row, 5, NumericTableWidgetItem(f"{total:.2f}"))
 
-        # Apenas Descrição e Unidade não são editáveis
         self.items_table.item(row, 1).setFlags(self.items_table.item(row, 1).flags() & ~Qt.ItemIsEditable)
         self.items_table.item(row, 2).setFlags(self.items_table.item(row, 2).flags() & ~Qt.ItemIsEditable)
         self.items_table.item(row, 5).setFlags(self.items_table.item(row, 5).flags() & ~Qt.ItemIsEditable)
@@ -200,7 +207,7 @@ class EntryEditWindow(QWidget):
         self.update_total_value()
 
     def update_total_value(self, row=None, column=None):
-        if row is None or column not in [3, 4]: return # Atualiza apenas se qtd ou vlr unit. mudar
+        if row is None or column not in [3, 4]: return
 
         self.items_table.blockSignals(True)
         try:
@@ -213,7 +220,6 @@ class EntryEditWindow(QWidget):
         self.items_table.blockSignals(False)
 
     def set_read_only(self, read_only):
-        """Ativa/desativa o modo somente leitura para a janela."""
         self.date_input.setReadOnly(read_only)
         self.supplier_input.setReadOnly(read_only)
         self.note_number_input.setReadOnly(read_only)
@@ -222,13 +228,12 @@ class EntryEditWindow(QWidget):
         )
         self.save_button.setDisabled(read_only)
         self.finalize_button.setDisabled(read_only)
-        # Os botões de adicionar/remover itens também devem ser desabilitados
-        self.items_table.parent().findChild(QPushButton, "Adicionar Insumo...").setDisabled(read_only)
-        self.items_table.parent().findChild(QPushButton, "Remover Insumo").setDisabled(read_only)
+        self.add_item_button.setDisabled(read_only)
+        self.remove_item_button.setDisabled(read_only)
 
     def finalize_entry(self):
         if not self.current_entry_id:
-            QMessageBox.warning(self, "Atenção", "Salve a nota de entrada antes de finalizá-la.")
+            show_error_message(self, "Salve a nota de entrada antes de finalizá-la.")
             return
 
         reply = QMessageBox.question(
@@ -239,11 +244,10 @@ class EntryEditWindow(QWidget):
         )
 
         if reply == QMessageBox.Yes:
-            # Salva quaisquer alterações pendentes antes de finalizar
             self.save_entry()
-            success, message = entry_operations.finalize_entry(self.current_entry_id)
-            if success:
-                QMessageBox.information(self, "Sucesso", message)
-                self.load_entry_data() # Recarrega para refletir o novo status e modo read-only
+            response = self.stock_service.finalize_entry(self.current_entry_id)
+            if response["success"]:
+                QMessageBox.information(self, "Sucesso", response["message"])
+                self.load_entry_data()
             else:
-                QMessageBox.critical(self, "Erro ao Finalizar", message)
+                show_error_message(self, response["message"])
