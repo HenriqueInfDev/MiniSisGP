@@ -149,7 +149,7 @@ class OPWindow(QWidget):
         id_item = NumericTableWidgetItem(str(item['ID_PRODUTO']))
         desc_item = QTableWidgetItem(item['DESCRICAO'])
         qty_item = NumericTableWidgetItem(str(item['QUANTIDADE_PRODUZIR']))
-        unit_item = QTableWidgetItem(item['UNIDADE'])
+        unit_item = QTableWidgetItem(item['UNIDADE'].upper())
 
         # Apenas a célula de quantidade deve ser editável
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable)

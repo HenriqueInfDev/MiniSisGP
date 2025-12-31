@@ -86,7 +86,7 @@ class EntryEditWindow(QWidget):
         header = self.items_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
-        self.items_table.cellChanged.connect(self.update_total_value)
+        self.items_table.cellChanged.connect(self.on_cell_changed)
         items_layout.addWidget(self.items_table)
 
         buttons_layout = QHBoxLayout()
@@ -130,8 +130,8 @@ class EntryEditWindow(QWidget):
         for row in range(self.items_table.rowCount()):
             items.append({
                 'id_insumo': int(self.items_table.item(row, 0).text()),
-                'quantidade': float(self.items_table.item(row, 3).text()),
-                'valor_unitario': float(self.items_table.item(row, 4).text())
+                'quantidade': float(self.items_table.item(row, 3).text().replace(',', '.')),
+                'valor_unitario': float(self.items_table.item(row, 4).text().replace(',', '.'))
             })
 
         if self.current_entry_id:
@@ -217,18 +217,16 @@ class EntryEditWindow(QWidget):
 
         self.items_table.setItem(row, 0, QTableWidgetItem(str(item['ID_INSUMO'])))
         self.items_table.setItem(row, 1, QTableWidgetItem(item['DESCRICAO']))
-        self.items_table.setItem(row, 2, QTableWidgetItem(item['SIGLA']))
+        self.items_table.setItem(row, 2, QTableWidgetItem(item['SIGLA'].upper()))
         self.items_table.setItem(row, 3, NumericTableWidgetItem(str(item['QUANTIDADE'])))
         self.items_table.setItem(row, 4, NumericTableWidgetItem(f"{item['VALOR_UNITARIO']:.2f}"))
         total = item['QUANTIDADE'] * item['VALOR_UNITARIO']
         self.items_table.setItem(row, 5, NumericTableWidgetItem(f"{total:.2f}"))
 
-        for col in [1, 2, 5]:
+        for col in [1, 2]:
              self.items_table.item(row, col).setFlags(self.items_table.item(row, col).flags() & ~Qt.ItemIsEditable)
 
         self.items_table.blockSignals(False)
-        if not is_loading:
-            self.update_total_value()
 
     def remove_item(self):
         rows = self.items_table.selectionModel().selectedRows()
@@ -237,32 +235,46 @@ class EntryEditWindow(QWidget):
             return
         for index in sorted([r.row() for r in rows], reverse=True):
             self.items_table.removeRow(index)
-        self.update_total_value()
 
-    def update_total_value(self, row=None, column=None):
-        if row is None or column not in [3, 4]: return
-
+    def on_cell_changed(self, row, column):
         self.items_table.blockSignals(True)
         try:
-            quantity = float(self.items_table.item(row, 3).text())
-            unit_price = float(self.items_table.item(row, 4).text())
-            total = quantity * unit_price
-            self.items_table.setItem(row, 5, NumericTableWidgetItem(f"{total:.2f}"))
-        except (ValueError, TypeError):
-             self.items_table.setItem(row, 5, NumericTableWidgetItem("0.00"))
-        self.items_table.blockSignals(False)
+            qty_item = self.items_table.item(row, 3)
+            unit_price_item = self.items_table.item(row, 4)
+            total_price_item = self.items_table.item(row, 5)
+
+            qty = float(qty_item.text().replace(',', '.')) if qty_item and qty_item.text() else 0
+            unit_price = float(unit_price_item.text().replace(',', '.')) if unit_price_item and unit_price_item.text() else 0
+            total_price = float(total_price_item.text().replace(',', '.')) if total_price_item and total_price_item.text() else 0
+
+            if column == 3:  # Quantidade
+                new_total = qty * unit_price
+                total_price_item.setText(f"{new_total:.2f}")
+            elif column == 4:  # Valor Unitário
+                new_total = qty * unit_price
+                total_price_item.setText(f"{new_total:.2f}")
+            elif column == 5:  # Valor Total
+                if qty > 0:
+                    new_unit_price = total_price / qty
+                    unit_price_item.setText(f"{new_unit_price:.2f}")
+                else:
+                    unit_price_item.setText("0.00")
+        except (ValueError, TypeError, ZeroDivisionError) as e:
+            print(f"Error in calculation: {e}")
+        finally:
+            self.items_table.blockSignals(False)
 
     def set_read_only(self, read_only):
         self.date_input.setReadOnly(read_only)
         self.typing_date_input.setReadOnly(read_only)
         self.supplier_display.setReadOnly(True) # Always read-only
-        # Find the search button in the layout to disable it
+
         supplier_layout = self.main_layout.itemAt(1).widget().layout().itemAt(3, QFormLayout.FieldRole).layout()
         search_button = supplier_layout.itemAt(1).widget()
         search_button.setDisabled(read_only)
 
         self.note_number_input.setReadOnly(read_only)
-        self.items_table.setEditTriggers(QAbstractItemView.NoEditTriggers if read_only else QAbstractItemView.DoubleClicked)
+        self.items_table.setEditTriggers(QAbstractItemView.NoEditTriggers if read_only else QAbstractItemView.AllEditTriggers)
         self.save_button.setDisabled(read_only)
         self.finalize_button.setDisabled(read_only)
         self.add_item_button.setDisabled(read_only)
