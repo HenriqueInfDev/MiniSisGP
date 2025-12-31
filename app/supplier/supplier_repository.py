@@ -6,15 +6,15 @@ class SupplierRepository:
     def __init__(self):
         self.db_manager = get_db_manager()
 
-    def add(self, name, cnpj, phone, email, address):
+    def add(self, razao_social, nome_fantasia, cnpj, phone, email, address):
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(
                 """INSERT INTO TFORNECEDOR
-                   (NOME, CNPJ, TELEFONE, EMAIL, LOGRADOURO, NUMERO, COMPLEMENTO, BAIRRO, CIDADE, UF, CEP)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (name, cnpj, phone, email, address['logradouro'], address['numero'], address['complemento'],
+                   (RAZAO_SOCIAL, NOME_FANTASIA, CNPJ, TELEFONE, EMAIL, LOGRADOURO, NUMERO, COMPLEMENTO, BAIRRO, CIDADE, UF, CEP)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (razao_social, nome_fantasia, cnpj, phone, email, address['logradouro'], address['numero'], address['complemento'],
                  address['bairro'], address['cidade'], address['uf'], address['cep'])
             )
             new_id = cursor.lastrowid
@@ -26,22 +26,22 @@ class SupplierRepository:
 
     def get_all(self):
         conn = self.db_manager.get_connection()
-        return conn.execute("SELECT * FROM TFORNECEDOR ORDER BY NOME").fetchall()
+        return conn.execute("SELECT * FROM TFORNECEDOR ORDER BY RAZAO_SOCIAL").fetchall()
 
     def get_by_id(self, supplier_id):
         conn = self.db_manager.get_connection()
         return conn.execute("SELECT * FROM TFORNECEDOR WHERE ID = ?", (supplier_id,)).fetchone()
 
-    def update(self, supplier_id, name, cnpj, phone, email, address):
+    def update(self, supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address):
         conn = self.db_manager.get_connection()
         try:
             conn.execute(
                 """UPDATE TFORNECEDOR
-                   SET NOME = ?, CNPJ = ?, TELEFONE = ?, EMAIL = ?,
+                   SET RAZAO_SOCIAL = ?, NOME_FANTASIA = ?, CNPJ = ?, TELEFONE = ?, EMAIL = ?,
                        LOGRADOURO = ?, NUMERO = ?, COMPLEMENTO = ?, BAIRRO = ?,
                        CIDADE = ?, UF = ?, CEP = ?
                    WHERE ID = ?""",
-                (name, cnpj, phone, email, address['logradouro'], address['numero'], address['complemento'],
+                (razao_social, nome_fantasia, cnpj, phone, email, address['logradouro'], address['numero'], address['complemento'],
                  address['bairro'], address['cidade'], address['uf'], address['cep'], supplier_id)
             )
             conn.commit()

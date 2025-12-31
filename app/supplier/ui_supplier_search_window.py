@@ -40,7 +40,7 @@ class SupplierSearchWindow(QWidget):
         results_layout = QVBoxLayout()
         self.table_view = QTableView()
         self.table_model = QStandardItemModel()
-        self.table_model.setHorizontalHeaderLabels(["ID", "Nome", "CNPJ", "Telefone", "Email"])
+        self.table_model.setHorizontalHeaderLabels(["ID", "Razão Social", "Nome Fantasia", "CNPJ", "Telefone", "Email"])
         self.table_view.setModel(self.table_model)
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -59,7 +59,8 @@ class SupplierSearchWindow(QWidget):
             for supplier in response["data"]:
                 row = [
                     QStandardItem(str(supplier['ID'])),
-                    QStandardItem(supplier['NOME']),
+                    QStandardItem(supplier['RAZAO_SOCIAL']),
+                    QStandardItem(supplier['NOME_FANTASIA']),
                     QStandardItem(supplier['CNPJ']),
                     QStandardItem(supplier['TELEFONE']),
                     QStandardItem(supplier['EMAIL'])

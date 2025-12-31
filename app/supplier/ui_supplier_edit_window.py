@@ -45,11 +45,13 @@ class SupplierEditWindow(QWidget):
     def setup_identification_tab(self):
         ident_widget = QWidget()
         layout = QFormLayout(ident_widget)
-        self.name_input = QLineEdit()
+        self.razao_social_input = QLineEdit()
+        self.nome_fantasia_input = QLineEdit()
         self.cnpj_input = QLineEdit()
         self.phone_input = QLineEdit()
         self.email_input = QLineEdit()
-        layout.addRow("Nome:", self.name_input)
+        layout.addRow("Razão Social:", self.razao_social_input)
+        layout.addRow("Nome Fantasia:", self.nome_fantasia_input)
         layout.addRow("CNPJ:", self.cnpj_input)
         layout.addRow("Telefone:", self.phone_input)
         layout.addRow("Email:", self.email_input)
@@ -78,7 +80,8 @@ class SupplierEditWindow(QWidget):
         response = self.supplier_service.get_supplier_by_id(self.current_supplier_id)
         if response["success"]:
             supplier = response["data"]
-            self.name_input.setText(supplier['NOME'])
+            self.razao_social_input.setText(supplier['RAZAO_SOCIAL'])
+            self.nome_fantasia_input.setText(supplier['NOME_FANTASIA'])
             self.cnpj_input.setText(supplier['CNPJ'])
             self.phone_input.setText(supplier['TELEFONE'])
             self.email_input.setText(supplier['EMAIL'])
@@ -93,7 +96,8 @@ class SupplierEditWindow(QWidget):
             show_error_message(self, response["message"])
 
     def save_supplier(self):
-        name = self.name_input.text()
+        razao_social = self.razao_social_input.text()
+        nome_fantasia = self.nome_fantasia_input.text()
         cnpj = self.cnpj_input.text()
         phone = self.phone_input.text()
         email = self.email_input.text()
@@ -108,9 +112,9 @@ class SupplierEditWindow(QWidget):
         }
 
         if self.current_supplier_id:
-            response = self.supplier_service.update_supplier(self.current_supplier_id, name, cnpj, phone, email, address)
+            response = self.supplier_service.update_supplier(self.current_supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address)
         else:
-            response = self.supplier_service.add_supplier(name, cnpj, phone, email, address)
+            response = self.supplier_service.add_supplier(razao_social, nome_fantasia, cnpj, phone, email, address)
 
         if response["success"]:
             QMessageBox.information(self, "Sucesso", response["message"])

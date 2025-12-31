@@ -5,16 +5,16 @@ class SupplierService:
     def __init__(self):
         self.supplier_repository = SupplierRepository()
 
-    def add_supplier(self, name, cnpj, phone, email, address):
-        if not name:
-            return {"success": False, "message": "O nome do fornecedor é obrigatório."}
+    def add_supplier(self, razao_social, nome_fantasia, cnpj, phone, email, address):
+        if not razao_social:
+            return {"success": False, "message": "A Razão Social do fornecedor é obrigatória."}
 
         try:
-            new_id = self.supplier_repository.add(name, cnpj, phone, email, address)
+            new_id = self.supplier_repository.add(razao_social, nome_fantasia, cnpj, phone, email, address)
             if new_id:
                 return {"success": True, "data": new_id, "message": "Fornecedor adicionado com sucesso."}
             else:
-                return {"success": False, "message": "Fornecedor com este nome já existe."}
+                return {"success": False, "message": "Fornecedor with this Razão Social already exists."}
         except Exception as e:
             return {"success": False, "message": f"Erro ao adicionar fornecedor: {e}"}
 
@@ -35,15 +35,15 @@ class SupplierService:
         except Exception as e:
             return {"success": False, "message": f"Erro ao buscar fornecedor: {e}"}
 
-    def update_supplier(self, supplier_id, name, cnpj, phone, email, address):
-        if not name:
-            return {"success": False, "message": "O nome do fornecedor é obrigatório."}
+    def update_supplier(self, supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address):
+        if not razao_social:
+            return {"success": False, "message": "A Razão Social do fornecedor é obrigatória."}
 
         try:
-            if self.supplier_repository.update(supplier_id, name, cnpj, phone, email, address):
+            if self.supplier_repository.update(supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address):
                 return {"success": True, "message": "Fornecedor atualizado com sucesso."}
             else:
-                return {"success": False, "message": "Fornecedor com este nome já existe."}
+                return {"success": False, "message": "Fornecedor with this Razão Social already exists."}
         except Exception as e:
             return {"success": False, "message": f"Erro ao atualizar fornecedor: {e}"}
 

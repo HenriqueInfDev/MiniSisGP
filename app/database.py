@@ -68,7 +68,8 @@ class DatabaseManager:
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS TFORNECEDOR (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            NOME TEXT NOT NULL UNIQUE,
+            RAZAO_SOCIAL TEXT NOT NULL UNIQUE,
+            NOME_FANTASIA TEXT,
             CNPJ TEXT,
             TELEFONE TEXT,
             EMAIL TEXT,
@@ -166,7 +167,8 @@ class DatabaseManager:
         self.connection.commit()
 
     def _run_migrations(self, cursor):
-        cursor.execute("PRAGMA table_info(TENTRADANota)")
+        # Migração da tabela TENTRADANOTA
+        cursor.execute("PRAGMA table_info(TENTRADANOTA)")
         columns_info = {column[1]: {'type': column[2], 'pk': column[5]} for column in cursor.fetchall()}
 
         if 'DATA_DIGITACAO' not in columns_info:
@@ -176,14 +178,17 @@ class DatabaseManager:
         if 'FORNECEDOR' in columns_info and columns_info['FORNECEDOR']['type'] == 'TEXT':
             print("Executando migração de Fornecedor...")
             try:
+                # Renomeado para evitar conflito com a nova tabela TFORNECEDOR
+                cursor.execute("CREATE TABLE IF NOT EXISTS TFORNECEDOR (ID INTEGER PRIMARY KEY AUTOINCREMENT, RAZAO_SOCIAL TEXT NOT NULL UNIQUE, NOME_FANTASIA TEXT, CNPJ TEXT, TELEFONE TEXT, EMAIL TEXT, LOGRADOURO TEXT, NUMERO TEXT, COMPLEMENTO TEXT, BAIRRO TEXT, CIDADE TEXT, UF TEXT, CEP TEXT)")
+
                 cursor.execute("SELECT DISTINCT FORNECEDOR FROM TENTRADANOTA WHERE FORNECEDOR IS NOT NULL AND FORNECEDOR != ''")
                 old_suppliers = [row[0] for row in cursor.fetchall()]
                 for supplier_name in old_suppliers:
-                    cursor.execute("INSERT OR IGNORE INTO TFORNECEDOR (NOME) VALUES (?)", (supplier_name,))
+                    cursor.execute("INSERT OR IGNORE INTO TFORNECEDOR (RAZAO_SOCIAL) VALUES (?)", (supplier_name,))
 
                 cursor.execute("ALTER TABLE TENTRADANOTA ADD COLUMN ID_FORNECEDOR INTEGER REFERENCES TFORNECEDOR(ID)")
 
-                cursor.execute("SELECT ID, NOME FROM TFORNECEDOR")
+                cursor.execute("SELECT ID, RAZAO_SOCIAL FROM TFORNECEDOR")
                 supplier_map = {name: id for id, name in cursor.fetchall()}
                 for name, id in supplier_map.items():
                     cursor.execute("UPDATE TENTRADANOTA SET ID_FORNECEDOR = ? WHERE FORNECEDOR = ?", (id, name))
@@ -214,8 +219,35 @@ class DatabaseManager:
                 self.connection.rollback()
                 raise e
 
+        # Migração da tabela TFORNECEDOR
         cursor.execute("PRAGMA table_info(TFORNECEDOR)")
-        supplier_columns = [column[1] for column in cursor.fetchall()]
+        supplier_columns = {col[1]: col for col in cursor.fetchall()}
+
+        if 'NOME' in supplier_columns and 'RAZAO_SOCIAL' not in supplier_columns:
+            # Renomeia a tabela antiga
+            cursor.execute("ALTER TABLE TFORNECEDOR RENAME TO TFORNECEDOR_OLD")
+            # Cria a nova tabela com a estrutura correta
+            cursor.execute('''
+                CREATE TABLE TFORNECEDOR (
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    RAZAO_SOCIAL TEXT NOT NULL UNIQUE,
+                    NOME_FANTASIA TEXT,
+                    CNPJ TEXT,
+                    TELEFONE TEXT,
+                    EMAIL TEXT,
+                    LOGRADOURO TEXT,
+                    NUMERO TEXT,
+                    COMPLEMENTO TEXT,
+                    BAIRRO TEXT,
+                    CIDADE TEXT,
+                    UF TEXT,
+                    CEP TEXT
+                )
+            ''')
+            # Copia os dados, mapeando NOME para RAZAO_SOCIAL
+            cursor.execute("INSERT INTO TFORNECEDOR (ID, RAZAO_SOCIAL, CNPJ, TELEFONE, EMAIL) SELECT ID, NOME, CNPJ, TELEFONE, EMAIL FROM TFORNECEDOR_OLD")
+            cursor.execute("DROP TABLE TFORNECEDOR_OLD")
+
         address_columns = ['LOGRADOURO', 'NUMERO', 'COMPLEMENTO', 'BAIRRO', 'CIDADE', 'UF', 'CEP']
         for col in address_columns:
             if col not in supplier_columns:

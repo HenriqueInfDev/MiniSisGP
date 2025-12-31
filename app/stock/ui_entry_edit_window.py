@@ -98,7 +98,7 @@ class EntryEditWindow(QWidget):
         if response["success"]:
             self.supplier_combo.addItem("Selecione...", userData=None)
             for supplier in response["data"]:
-                self.supplier_combo.addItem(supplier['NOME'], userData=supplier['ID'])
+                self.supplier_combo.addItem(supplier['NOME_FANTASIA'] or supplier['RAZAO_SOCIAL'], userData=supplier['ID'])
         else:
             show_error_message(self, response["message"])
 
