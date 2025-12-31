@@ -1,8 +1,11 @@
 # app/supplier/ui_supplier_edit_window.py
+import requests
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
     QPushButton, QTabWidget, QFormLayout, QMessageBox
 )
+from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtCore import QRegularExpression
 from ..services.supplier_service import SupplierService
 from ..ui_utils import show_error_message
 
@@ -47,12 +50,18 @@ class SupplierEditWindow(QWidget):
         layout = QFormLayout(ident_widget)
         self.razao_social_input = QLineEdit()
         self.nome_fantasia_input = QLineEdit()
+
         self.cnpj_input = QLineEdit()
+        self.cnpj_input.setValidator(QRegularExpressionValidator(QRegularExpression("[0-9]+")))
+
         self.phone_input = QLineEdit()
+        self.phone_input.textChanged.connect(self.format_phone_number)
+
         self.email_input = QLineEdit()
+
         layout.addRow("Razão Social:", self.razao_social_input)
         layout.addRow("Nome Fantasia:", self.nome_fantasia_input)
-        layout.addRow("CNPJ:", self.cnpj_input)
+        layout.addRow("CPF/CNPJ:", self.cnpj_input)
         layout.addRow("Telefone:", self.phone_input)
         layout.addRow("Email:", self.email_input)
         self.tab_widget.addTab(ident_widget, "Identificação")
@@ -60,21 +69,53 @@ class SupplierEditWindow(QWidget):
     def setup_address_tab(self):
         address_widget = QWidget()
         layout = QFormLayout(address_widget)
+        self.cep_input = QLineEdit()
+        self.cep_input.setInputMask("00000-000")
+        self.cep_input.editingFinished.connect(self.fetch_address_from_cep)
+
         self.logradouro_input = QLineEdit()
         self.numero_input = QLineEdit()
         self.complemento_input = QLineEdit()
         self.bairro_input = QLineEdit()
         self.cidade_input = QLineEdit()
+
         self.uf_input = QLineEdit()
-        self.cep_input = QLineEdit()
+        self.uf_input.setInputMask("AA")
+
+        layout.addRow("CEP:", self.cep_input)
         layout.addRow("Logradouro:", self.logradouro_input)
         layout.addRow("Número:", self.numero_input)
         layout.addRow("Complemento:", self.complemento_input)
         layout.addRow("Bairro:", self.bairro_input)
         layout.addRow("Cidade:", self.cidade_input)
         layout.addRow("UF:", self.uf_input)
-        layout.addRow("CEP:", self.cep_input)
         self.tab_widget.addTab(address_widget, "Endereço")
+
+    def format_phone_number(self, text):
+        cleaned_text = ''.join(filter(str.isdigit, text))
+
+        if len(cleaned_text) <= 10:
+            mask = "+55 (00) 0000-0000"
+        else:
+            mask = "+55 (00) 0 0000-0000"
+
+        self.phone_input.setInputMask(mask)
+
+    def fetch_address_from_cep(self):
+        cep = self.cep_input.text().replace("-", "").strip()
+        if len(cep) == 8:
+            try:
+                response = requests.get(f"https://viacep.com.br/ws/{cep}/json/")
+                if response.status_code == 200:
+                    data = response.json()
+                    if not data.get("erro"):
+                        self.logradouro_input.setText(data.get("logradouro", ""))
+                        self.bairro_input.setText(data.get("bairro", ""))
+                        self.cidade_input.setText(data.get("localidade", ""))
+                        self.uf_input.setText(data.get("uf", ""))
+                        self.numero_input.setFocus()
+            except requests.RequestException:
+                show_error_message(self, "Não foi possível buscar o CEP. Verifique sua conexão com a internet.")
 
     def load_supplier_data(self):
         response = self.supplier_service.get_supplier_by_id(self.current_supplier_id)

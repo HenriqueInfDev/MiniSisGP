@@ -1,5 +1,6 @@
 # app/services/supplier_service.py
 from ..supplier.supplier_repository import SupplierRepository
+from ..validators import validate_cpf_cnpj
 
 class SupplierService:
     def __init__(self):
@@ -8,6 +9,9 @@ class SupplierService:
     def add_supplier(self, razao_social, nome_fantasia, cnpj, phone, email, address):
         if not razao_social:
             return {"success": False, "message": "A Razão Social do fornecedor é obrigatória."}
+
+        if cnpj and not validate_cpf_cnpj(cnpj)[0]:
+            return {"success": False, "message": "CPF/CNPJ inválido."}
 
         try:
             new_id = self.supplier_repository.add(razao_social, nome_fantasia, cnpj, phone, email, address)
@@ -38,6 +42,9 @@ class SupplierService:
     def update_supplier(self, supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address):
         if not razao_social:
             return {"success": False, "message": "A Razão Social do fornecedor é obrigatória."}
+
+        if cnpj and not validate_cpf_cnpj(cnpj)[0]:
+            return {"success": False, "message": "CPF/CNPJ inválido."}
 
         try:
             if self.supplier_repository.update(supplier_id, razao_social, nome_fantasia, cnpj, phone, email, address):
