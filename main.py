@@ -5,8 +5,9 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt
 
-# Add the project root to the Python path to ensure absolute imports work.
-project_root = os.path.abspath(os.path.dirname(__file__))
+# Get the absolute path to the directory containing main.py
+project_root = os.path.dirname(os.path.abspath(__file__))
+# Add the project root to the Python path. This is crucial for absolute imports.
 sys.path.insert(0, project_root)
 
 from app.database import get_db_manager
@@ -60,18 +61,20 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def open_window(self, window_name):
+        # Local imports to avoid circular dependencies
+        from app.item.ui_search_window import SearchWindow
+        from app.supplier.ui_supplier_search_window import SupplierSearchWindow
+        from app.stock.ui_entry_search_window import EntrySearchWindow
+        from app.production.ui_op_window import OPWindow
+
         if self.child_windows.get(window_name) is None:
             if window_name == "item_search":
-                from app.item.ui_search_window import SearchWindow
                 window = SearchWindow(parent=self)
             elif window_name == "supplier_search":
-                from app.supplier.ui_supplier_search_window import SupplierSearchWindow
                 window = SupplierSearchWindow(parent=self)
             elif window_name == "stock_entry_search":
-                from app.stock.ui_entry_search_window import EntrySearchWindow
                 window = EntrySearchWindow(parent=self)
             elif window_name == "production_order":
-                from app.production.ui_op_window import OPWindow
                 window = OPWindow(parent=self)
             else:
                 return
