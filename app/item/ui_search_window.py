@@ -17,7 +17,6 @@ class SearchWindow(QWidget):
     def __init__(self, selection_mode=False, item_type_filter=None):
         super().__init__()
         self.item_service = ItemService()
-        self.edit_window = None # Para manter referência da janela de edição
         self.selection_mode = selection_mode
         self.item_type_filter = item_type_filter # Lista de tipos de item a exibir
 
@@ -160,23 +159,10 @@ class SearchWindow(QWidget):
         self.show_edit_window(item_id=item_data['ID'])
 
     def show_edit_window(self, item_id):
-        """Abre a janela de edição, garantindo que apenas uma instância exista e limpando a referência quando fechada."""
-        # Se a janela já existe e está visível, apenas a traga para a frente.
-        if self.edit_window and self.edit_window.isVisible():
-            self.edit_window.activateWindow()
-            self.edit_window.raise_()
-            return
-
+        """Abre a janela de edição como filha da janela de busca."""
         from .ui_edit_window import EditWindow
-        self.edit_window = EditWindow(item_id=item_id)
-
-        # Conecta o sinal 'destroyed' para limpar a referência da janela quando ela for fechada.
-        # Isso previne o crash ao tentar reabrir a janela.
-        self.edit_window.destroyed.connect(self.on_edit_window_closed)
-
-        self.edit_window.show()
-
-    def on_edit_window_closed(self):
-        """Slot para limpar a referência da janela de edição e recarregar os itens."""
-        self.edit_window = None
-        self.load_items()
+        # A referência é armazenada em uma variável local. O Qt cuidará da destruição.
+        edit_win = EditWindow(item_id=item_id, parent=self)
+        # Conectamos o sinal 'destroyed' que é emitido quando a janela é fechada.
+        edit_win.destroyed.connect(self.load_items)
+        edit_win.show()
