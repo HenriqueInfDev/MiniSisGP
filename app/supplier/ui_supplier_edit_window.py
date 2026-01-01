@@ -1,13 +1,12 @@
 # app/supplier/ui_supplier_edit_window.py
-import requests
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
     QPushButton, QTabWidget, QFormLayout, QMessageBox
 )
 from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtCore import QRegularExpression
-from ..services.supplier_service import SupplierService
-from ..ui_utils import show_error_message
+from app.services.supplier_service import SupplierService
+from app.ui_utils import show_error_message
 
 class SupplierEditWindow(QWidget):
     def __init__(self, supplier_id=None):
@@ -147,20 +146,17 @@ class SupplierEditWindow(QWidget):
         self.phone_input.blockSignals(False)
 
     def fetch_address_from_cep(self):
-        cep = self.cep_input.text().replace("-", "").strip()
-        if len(cep) == 8:
-            try:
-                response = requests.get(f"https://viacep.com.br/ws/{cep}/json/")
-                if response.status_code == 200:
-                    data = response.json()
-                    if not data.get("erro"):
-                        self.logradouro_input.setText(data.get("logradouro", ""))
-                        self.bairro_input.setText(data.get("bairro", ""))
-                        self.cidade_input.setText(data.get("localidade", ""))
-                        self.uf_input.setText(data.get("uf", ""))
-                        self.numero_input.setFocus()
-            except requests.RequestException:
-                show_error_message(self, "Não foi possível buscar o CEP. Verifique sua conexão com a internet.")
+        cep = self.cep_input.text()
+        response = self.supplier_service.fetch_address_from_cep(cep)
+        if response["success"]:
+            data = response["data"]
+            self.logradouro_input.setText(data.get("logradouro", ""))
+            self.bairro_input.setText(data.get("bairro", ""))
+            self.cidade_input.setText(data.get("localidade", ""))
+            self.uf_input.setText(data.get("uf", ""))
+            self.numero_input.setFocus()
+        else:
+            show_error_message(self, response["message"])
 
     def load_supplier_data(self):
         response = self.supplier_service.get_supplier_by_id(self.current_supplier_id)

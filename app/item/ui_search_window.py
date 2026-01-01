@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 
-from ..services.item_service import ItemService
-from ..ui_utils import show_error_message
+from app.services.item_service import ItemService
+from app.ui_utils import show_error_message
 
 
 class SearchWindow(QWidget):
@@ -162,7 +162,7 @@ class SearchWindow(QWidget):
 
     def show_edit_window(self, item_id):
         """Abre a janela de edição, garantindo que apenas uma instância exista e limpando a referência quando fechada."""
-        from .ui_edit_window import EditWindow
+        from app.item.ui_edit_window import EditWindow
         if self.edit_window is None:
             self.edit_window = EditWindow(item_id=item_id, parent=self)
             self.edit_window.destroyed.connect(self.on_edit_window_closed)

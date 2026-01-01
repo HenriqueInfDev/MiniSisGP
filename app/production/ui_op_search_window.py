@@ -5,13 +5,15 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from . import order_operations
+from app.services.production_service import ProductionService
+from app.ui_utils import show_error_message
 
 class OPSearchWindow(QWidget):
     op_selected = Signal(int)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.production_service = ProductionService()
         self.setWindowTitle("Pesquisa de Ordens de Produção")
         self.setGeometry(200, 200, 800, 600)
         self.setup_ui()
@@ -56,15 +58,19 @@ class OPSearchWindow(QWidget):
         self.table_model.removeRows(0, self.table_model.rowCount())
         search_term = self.search_term.text()
         search_field = self.search_field.currentText().upper()
-        ops = order_operations.list_ops(search_term, search_field)
-        for op in ops:
-            row = [
-                QStandardItem(str(op['ID'])),
-                QStandardItem(op.get('DATA_CRIACAO', '')),
-                QStandardItem(op.get('DATA_PREVISTA', '')),
-                QStandardItem(op.get('STATUS', ''))
-            ]
-            self.table_model.appendRow(row)
+        response = self.production_service.list_ops(search_term, search_field)
+        if response["success"]:
+            for op in response["data"]:
+                row = [
+                    QStandardItem(str(op['ID'])),
+                    QStandardItem(op.get('DATA_CRIACAO', '')),
+                    QStandardItem(op.get('DATA_PREVISTA', '')),
+                    QStandardItem(op.get('STATUS', ''))
+                ]
+                self.table_model.appendRow(row)
+        else:
+            show_error_message(self, response["message"])
+
 
     def handle_double_click(self, model_index):
         op_id = int(self.table_model.item(model_index.row(), 0).text())

@@ -1,6 +1,7 @@
 # app/services/supplier_service.py
-from ..supplier.supplier_repository import SupplierRepository
-from ..validators import validate_cpf_cnpj
+import requests
+from app.supplier.supplier_repository import SupplierRepository
+from app.validators import validate_cpf_cnpj
 
 class SupplierService:
     def __init__(self):
@@ -69,3 +70,20 @@ class SupplierService:
             return {"success": True, "data": suppliers}
         except Exception as e:
             return {"success": False, "message": f"Erro ao buscar fornecedores: {e}"}
+
+    def fetch_address_from_cep(self, cep):
+        cep = cep.replace("-", "").strip()
+        if len(cep) == 8:
+            try:
+                response = requests.get(f"https://viacep.com.br/ws/{cep}/json/")
+                if response.status_code == 200:
+                    data = response.json()
+                    if not data.get("erro"):
+                        return {"success": True, "data": data}
+                    else:
+                        return {"success": False, "message": "CEP não encontrado."}
+                else:
+                    return {"success": False, "message": "Erro ao buscar CEP."}
+            except requests.RequestException:
+                return {"success": False, "message": "Não foi possível buscar o CEP. Verifique sua conexão com a internet."}
+        return {"success": False, "message": "CEP inválido."}

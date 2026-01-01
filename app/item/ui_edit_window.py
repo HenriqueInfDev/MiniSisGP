@@ -5,9 +5,8 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QLabel, QDoubleSpinBox, QAbstractItemView
 )
 from PySide6.QtCore import Qt
-from ..services.item_service import ItemService
-from ..production import composition_operations # To be refactored later
-from ..ui_utils import NumericTableWidgetItem, show_error_message
+from app.services.item_service import ItemService
+from app.ui_utils import NumericTableWidgetItem, show_error_message
 
 class EditWindow(QWidget):
     def __init__(self, item_id=None, parent=None):
@@ -227,15 +226,18 @@ class EditWindow(QWidget):
     def load_composition_data(self):
         self.composition_table.setRowCount(0)
         if self.current_item_id:
-            composition = composition_operations.get_bom(self.current_item_id)
-            for comp_item in composition:
-                self.add_row_to_composition_grid(
-                    comp_item['ID_INSUMO'],
-                    comp_item['DESCRICAO'],
-                    comp_item['QUANTIDADE'],
-                    comp_item['CUSTO_MEDIO'],
-                    comp_item['SIGLA']
-                )
+            response = self.item_service.get_composition(self.current_item_id)
+            if response["success"]:
+                for comp_item in response["data"]:
+                    self.add_row_to_composition_grid(
+                        comp_item['ID_INSUMO'],
+                        comp_item['DESCRICAO'],
+                        comp_item['QUANTIDADE'],
+                        comp_item['CUSTO_MEDIO'],
+                        comp_item['SIGLA']
+                    )
+            else:
+                show_error_message(self, response["message"])
             self.update_total_cost()
 
     def toggle_composition_tab(self):
@@ -246,7 +248,7 @@ class EditWindow(QWidget):
 
     def open_material_search(self):
         """Abre a janela de busca de itens em modo de seleção."""
-        from .ui_search_window import SearchWindow
+        from app.item.ui_search_window import SearchWindow
         if self.search_window is None:
             self.search_window = SearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'], parent=self)
             self.search_window.item_selected.connect(self.set_selected_material)
@@ -276,12 +278,9 @@ class EditWindow(QWidget):
 
         material_id = self.selected_material['ID']
 
-        # VALIDAÇÃO: Movida para o módulo de operações
-        is_valid, error_message = composition_operations.validate_bom_item(
-            self.current_item_id, material_id
-        )
-        if not is_valid:
-            QMessageBox.warning(self, "Erro de Validação", error_message)
+        response = self.item_service.validate_bom_item(self.current_item_id, material_id)
+        if not response["success"]:
+            QMessageBox.warning(self, "Erro de Validação", response["message"])
             return
 
         # Verifica se o item já está na tabela (para atualização)
@@ -400,10 +399,6 @@ class EditWindow(QWidget):
         item_type = self.type_combo.currentText()
         unit_id = self.unit_combo.currentData()
 
-        if not description or unit_id is None:
-            QMessageBox.warning(self, "Atenção", "Descrição e Unidade são obrigatórios.")
-            return
-
         # Salva o item principal
         if self.current_item_id is None:  # Novo item
             response = self.item_service.add_item(description, item_type, unit_id)
@@ -426,7 +421,10 @@ class EditWindow(QWidget):
                 quantity = float(self.composition_table.item(row, 2).text())
                 new_composition.append({'id_insumo': material_id, 'quantidade': quantity})
 
-            composition_operations.update_composition(self.current_item_id, new_composition)
+            response = self.item_service.update_composition(self.current_item_id, new_composition)
+            if not response["success"]:
+                show_error_message(self, response["message"])
+                return
 
         QMessageBox.information(self, "Sucesso", "Item salvo com sucesso!")
         self.setWindowTitle(f"Editando Item #{self.current_item_id}")

@@ -1,5 +1,6 @@
 # app/services/item_service.py
-from ..item.item_repository import ItemRepository
+from app.item.item_repository import ItemRepository
+from app.production import composition_operations
 
 class ItemService:
     def __init__(self):
@@ -106,3 +107,23 @@ class ItemService:
 
         except Exception as e:
             return {"success": False, "message": f"Erro ao registrar entrada de material: {e}"}
+
+    def get_composition(self, product_id):
+        try:
+            composition = composition_operations.get_bom(product_id)
+            return {"success": True, "data": composition}
+        except Exception as e:
+            return {"success": False, "message": f"Erro ao buscar composição: {e}"}
+
+    def update_composition(self, product_id, new_composition):
+        try:
+            composition_operations.update_composition(product_id, new_composition)
+            return {"success": True, "message": "Composição atualizada com sucesso."}
+        except Exception as e:
+            return {"success": False, "message": f"Erro ao atualizar composição: {e}"}
+
+    def validate_bom_item(self, product_id, material_id):
+        is_valid, message = composition_operations.validate_bom_item(product_id, material_id)
+        if not is_valid:
+            return {"success": False, "message": message}
+        return {"success": True}
