@@ -5,14 +5,15 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QLabel, QDoubleSpinBox, QAbstractItemView
 )
 from PySide6.QtCore import Qt
-from ..services.item_service import ItemService
-from ..production import composition_operations # To be refactored later
-from ..ui_utils import NumericTableWidgetItem, show_error_message
+from . import item_operations
+from ..production import composition_operations
+from .ui_search_window import SearchWindow
+from ..ui_utils import NumericTableWidgetItem
 
 class EditWindow(QWidget):
     def __init__(self, item_id=None, parent=None):
         super().__init__(parent)
-        self.item_service = ItemService()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.current_item_id = item_id
         self.has_unsaved_changes = False
 
@@ -198,18 +199,14 @@ class EditWindow(QWidget):
         self.tab_widget.addTab(self.composition_widget, "Composição")
 
     def populate_units_combobox(self):
-        response = self.item_service.list_units()
-        if response["success"]:
-            for unit in response["data"]:
-                self.unit_combo.addItem(f"{unit['NOME']} ({unit['SIGLA']})", userData=unit['ID'])
-        else:
-            show_error_message(self, response["message"])
+        units = item_operations.list_units()
+        for unit in units:
+            self.unit_combo.addItem(f"{unit['NOME']} ({unit['SIGLA']})", userData=unit['ID'])
 
     def load_item_data(self):
         if self.current_item_id:
-            response = self.item_service.get_item_by_id(self.current_item_id)
-            if response["success"]:
-                item = response["data"]
+            item = item_operations.get_item_by_id(self.current_item_id)
+            if item:
                 self.description_input.setText(item['DESCRICAO'])
                 self.type_combo.setCurrentText(item['TIPO_ITEM'])
 
@@ -245,15 +242,17 @@ class EditWindow(QWidget):
 
     def open_material_search(self):
         """Abre a janela de busca de itens em modo de seleção."""
-        from .ui_search_window import SearchWindow
-        if self.search_window is None:
-            self.search_window = SearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'])
-            self.search_window.item_selected.connect(self.set_selected_material)
-            self.search_window.destroyed.connect(lambda: setattr(self, 'search_window', None))
-            self.search_window.show()
-        else:
-            self.search_window.activateWindow()
-            self.search_window.raise_()
+        try:
+            if self.search_window and self.search_window.isVisible():
+                self.search_window.activateWindow()
+                self.search_window.raise_()
+                return
+        except RuntimeError:
+            pass # A janela foi fechada
+
+        self.search_window = SearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'])
+        self.search_window.item_selected.connect(self.set_selected_material)
+        self.search_window.show()
 
     def set_selected_material(self, item_data):
         """Recebe o item selecionado da janela de busca e preenche o formulário."""
@@ -297,8 +296,8 @@ class EditWindow(QWidget):
                 return
 
         # Se não encontrou, adiciona uma nova linha
-        response = self.item_service.get_item_by_id(material_id)
-        unit_cost = response["data"]['CUSTO_MEDIO'] if response["success"] else 0
+        full_material_data = item_operations.get_item_by_id(material_id)
+        unit_cost = full_material_data['CUSTO_MEDIO'] if full_material_data else 0
 
         self.add_row_to_composition_grid(
             material_id,
@@ -404,17 +403,17 @@ class EditWindow(QWidget):
             return
 
         # Salva o item principal
-        if self.current_item_id is None:  # Novo item
-            response = self.item_service.add_item(description, item_type, unit_id)
-            if response["success"]:
-                self.current_item_id = response["data"]
+        if self.current_item_id is None: # Novo item
+            new_id = item_operations.add_item(description, item_type, unit_id)
+            if new_id:
+                self.current_item_id = new_id
             else:
-                show_error_message(self, response["message"])
+                QMessageBox.critical(self, "Erro", "Não foi possível criar o item. A descrição pode já existir.")
                 return
-        else:  # Item existente
-            response = self.item_service.update_item(self.current_item_id, description, item_type, unit_id)
-            if not response["success"]:
-                show_error_message(self, response["message"])
+        else: # Item existente
+            success = item_operations.update_item(self.current_item_id, description, item_type, unit_id)
+            if not success:
+                QMessageBox.critical(self, "Erro", "Não foi possível atualizar o item.")
                 return
 
         # Salva a composição se a aba estiver visível
@@ -446,10 +445,10 @@ class EditWindow(QWidget):
         )
 
         if reply == QMessageBox.Yes:
-            response = self.item_service.delete_item(self.current_item_id)
-            if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
-                self.has_unsaved_changes = False # Para evitar o prompt de salvar ao fechar
+            success, message = item_operations.delete_item(self.current_item_id)
+            if success:
+                QMessageBox.information(self, "Sucesso", message)
+                # O item foi excluído, então fechamos a janela de edição
                 self.close()
             else:
-                show_error_message(self, response["message"])
+                QMessageBox.critical(self, "Erro ao Excluir", message)

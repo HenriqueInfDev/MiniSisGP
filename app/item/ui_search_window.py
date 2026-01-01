@@ -5,10 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-
-from ..services.item_service import ItemService
-from ..ui_utils import show_error_message
-
+from . import item_operations
 
 class SearchWindow(QWidget):
     # Sinal que emitirá os dados do item selecionado
@@ -16,7 +13,7 @@ class SearchWindow(QWidget):
 
     def __init__(self, selection_mode=False, item_type_filter=None, parent=None):
         super().__init__(parent)
-        self.item_service = ItemService()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.edit_window = None # Para manter referência da janela de edição
         self.selection_mode = selection_mode
         self.item_type_filter = item_type_filter # Lista de tipos de item a exibir
@@ -84,12 +81,13 @@ class SearchWindow(QWidget):
         self.main_layout.addWidget(results_group)
 
     def load_items(self):
-        """Carrega os itens na tabela, usando o ItemService."""
+        """Carrega os itens na tabela, filtrando pelo texto de busca se fornecido."""
         search_type_text = self.search_field_combo.currentText()
         search_content = self.search_text.text()
         self.table_model.removeRows(0, self.table_model.rowCount())
 
         if search_content:
+            # Mapeia o texto do ComboBox para o valor esperado pelo backend
             search_type_map = {
                 "Descrição": "Descrição",
                 "ID": "ID",
@@ -97,16 +95,11 @@ class SearchWindow(QWidget):
                 "Quantidade": "Quantidade"
             }
             search_type = search_type_map.get(search_type_text, "Descrição")
-            response = self.item_service.search_items(search_type, search_content)
+            items = item_operations.search_items(search_type, search_content)
         else:
-            response = self.item_service.get_all_items()
-
-        if not response["success"]:
-            show_error_message(self, response["message"])
-            return
+            items = item_operations.list_items()
 
         # Aplica o filtro de tipo de item, se existir
-        items = response["data"]
         if self.item_type_filter:
             items = [item for item in items if item['TIPO_ITEM'] in self.item_type_filter]
 
@@ -161,14 +154,20 @@ class SearchWindow(QWidget):
 
     def show_edit_window(self, item_id):
         """Abre a janela de edição, garantindo que apenas uma instância exista e limpando a referência quando fechada."""
-        from .ui_edit_window import EditWindow
-        if self.edit_window is None:
-            self.edit_window = EditWindow(item_id=item_id, parent=self)
-            self.edit_window.destroyed.connect(self.on_edit_window_closed)
-            self.edit_window.show()
-        else:
+        # Se a janela já existe e está visível, apenas a traga para a frente.
+        if self.edit_window and self.edit_window.isVisible():
             self.edit_window.activateWindow()
             self.edit_window.raise_()
+            return
+
+        from .ui_edit_window import EditWindow
+        self.edit_window = EditWindow(item_id=item_id, parent=self)
+
+        # Conecta o sinal 'destroyed' para limpar a referência da janela quando ela for fechada.
+        # Isso previne o crash ao tentar reabrir a janela.
+        self.edit_window.destroyed.connect(self.on_edit_window_closed)
+
+        self.edit_window.show()
 
     def on_edit_window_closed(self):
         """Slot para limpar a referência da janela de edição e recarregar os itens."""

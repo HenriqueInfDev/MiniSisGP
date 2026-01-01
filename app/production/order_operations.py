@@ -1,9 +1,9 @@
 # app/production/order_operations.py
 from datetime import datetime
-from ..database import get_db_manager
+from ..database import get_db_connection
 
 def create_op(due_date, items_to_produce):
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -24,7 +24,7 @@ def create_op(due_date, items_to_produce):
         return None
 
 def update_op(op_id, due_date, items_to_produce):
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE ORDEMPRODUCAO SET DATA_PREVISTA = ? WHERE ID = ?", (due_date, op_id))
@@ -42,7 +42,7 @@ def update_op(op_id, due_date, items_to_produce):
         return False
 
 def get_op_details(op_id):
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     op_master = conn.execute("SELECT * FROM ORDEMPRODUCAO WHERE ID = ?", (op_id,)).fetchone()
     if not op_master:
         return None
@@ -56,7 +56,7 @@ def get_op_details(op_id):
     return {"master": dict(op_master), "items": [dict(row) for row in op_items]}
 
 def list_ops(search_term="", search_field="id"):
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     query = "SELECT ID, DATA_CRIACAO, DATA_PREVISTA, STATUS FROM ORDEMPRODUCAO"
     params = ()
     if search_term:

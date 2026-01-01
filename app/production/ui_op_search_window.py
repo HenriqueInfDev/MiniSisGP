@@ -10,8 +10,9 @@ from . import order_operations
 class OPSearchWindow(QWidget):
     op_selected = Signal(int)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle("Pesquisa de Ordens de Produção")
         self.setGeometry(200, 200, 800, 600)
         self.setup_ui()
@@ -46,7 +47,6 @@ class OPSearchWindow(QWidget):
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
         self.table_view.setSortingEnabled(True)
-        self.table_view.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         self.table_view.doubleClicked.connect(self.handle_double_click)
         layout.addWidget(self.table_view)
         results_group.setLayout(layout)

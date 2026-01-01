@@ -1,6 +1,6 @@
 # app/production/composition_operations.py
 import sqlite3
-from ..database import get_db_manager
+from ..database import get_db_connection
 
 def validate_bom_item(product_id, material_id):
     """
@@ -10,7 +10,7 @@ def validate_bom_item(product_id, material_id):
     if material_id == product_id:
         return False, "Um produto não pode ser componente de si mesmo."
 
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     material = conn.execute('SELECT DESCRICAO, TIPO_ITEM FROM ITEM WHERE ID = ?', (material_id,)).fetchone()
 
     if not material or material['TIPO_ITEM'] not in ('Insumo', 'Ambos'):
@@ -20,7 +20,7 @@ def validate_bom_item(product_id, material_id):
 
 def get_bom(product_id):
     """Busca a Composição (BOM) de um determinado produto."""
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     bom = conn.execute('''
         SELECT
             C.ID,
@@ -39,7 +39,7 @@ def get_bom(product_id):
 def add_bom_item(product_id, material_id, quantity):
     """Adiciona um novo item à Composição (BOM)."""
     try:
-        conn = get_db_manager().get_connection()
+        conn = get_db_connection()
         conn.execute(
             'INSERT INTO COMPOSICAO (ID_PRODUTO, ID_INSUMO, QUANTIDADE) VALUES (?, ?, ?)',
             (product_id, material_id, quantity)
@@ -47,12 +47,12 @@ def add_bom_item(product_id, material_id, quantity):
         conn.commit()
         return True
     except sqlite3.IntegrityError:
-        get_db_manager().get_connection().rollback()
+        get_db_connection().rollback()
         return False
 
 def update_bom_item(bom_id, quantity):
     """Atualiza a quantidade de um item na Composição (BOM)."""
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     conn.execute(
         'UPDATE COMPOSICAO SET QUANTIDADE = ? WHERE ID = ?',
         (quantity, bom_id)
@@ -61,7 +61,7 @@ def update_bom_item(bom_id, quantity):
 
 def delete_bom_item(bom_id):
     """Exclui um item da Composição (BOM)."""
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     conn.execute('DELETE FROM COMPOSICAO WHERE ID = ?', (bom_id,))
     conn.commit()
 
@@ -70,7 +70,7 @@ def update_composition(product_id, new_composition):
     Atualiza a composição de um produto.
     Apaga a composição antiga e insere a nova.
     """
-    conn = get_db_manager().get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         with conn:
