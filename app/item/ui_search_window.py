@@ -68,7 +68,7 @@ class ItemSearchWindow(QWidget):
 
         self.table_view = QTableView()
         self.table_model = QStandardItemModel()
-        self.table_model.setHorizontalHeaderLabels(["ID", "Código Interno", "Descrição", "Tipo", "Un.", "Quantidade", "Custo Unit."])
+        self.table_model.setHorizontalHeaderLabels(["ID", "Descrição", "Tipo", "Un.", "Quantidade", "Custo Unit."])
         self.table_view.setModel(self.table_model)
         header = self.table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -121,7 +121,6 @@ class ItemSearchWindow(QWidget):
 
             row = [
                 id_item,
-                QStandardItem(item['CODIGO_INTERNO']),
                 QStandardItem(item['DESCRICAO']),
                 QStandardItem(item['TIPO_ITEM']),
                 QStandardItem(item['SIGLA'].upper()),
