@@ -1,7 +1,6 @@
 import sqlite3
 import os
 import atexit
-import platform
 
 class DatabaseManager:
     _instance = None

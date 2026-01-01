@@ -1,5 +1,13 @@
 # main.py
 import sys
+import os
+
+# Adiciona o diretório raiz do projeto ao sys.path
+# Isso garante que as importações absolutas funcionem, independentemente de como o script é executado.
+project_root = os.path.abspath(os.path.dirname(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt
