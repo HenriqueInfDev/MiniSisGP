@@ -5,11 +5,11 @@ from PySide6.QtWidgets import (
     QLabel, QDateEdit, QAbstractItemView, QDateTimeEdit
 )
 from PySide6.QtCore import QDate, Qt, QDateTime
-from ..services.stock_service import StockService
-from ..services.supplier_service import SupplierService
-from ..item.ui_search_window import SearchWindow
-from ..supplier.ui_supplier_search_window import SupplierSearchWindow
-from ..ui_utils import NumericTableWidgetItem, show_error_message
+from app.services.stock_service import StockService
+from app.services.supplier_service import SupplierService
+from app.item.ui_search_window import SearchWindow
+from app.supplier.ui_supplier_search_window import SupplierSearchWindow
+from app.ui_utils import NumericTableWidgetItem, show_error_message
 
 class EntryEditWindow(QWidget):
     def __init__(self, entry_id=None):

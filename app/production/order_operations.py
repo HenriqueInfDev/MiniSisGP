@@ -1,6 +1,6 @@
 # app/production/order_operations.py
 from datetime import datetime
-from ..database import get_db_manager
+from app.database import get_db_manager
 
 def create_op(due_date, items_to_produce):
     conn = get_db_manager().get_connection()

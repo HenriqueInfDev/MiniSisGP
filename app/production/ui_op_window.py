@@ -6,9 +6,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import QDate, Qt
 from . import order_operations
-from ..item.ui_search_window import SearchWindow
-from .ui_op_search_window import OPSearchWindow
-from ..ui_utils import NumericTableWidgetItem
+from app.item.ui_search_window import SearchWindow
+from app.production.ui_op_search_window import OPSearchWindow
+from app.ui_utils import NumericTableWidgetItem
 
 class OPWindow(QWidget):
     def __init__(self, op_id=None):

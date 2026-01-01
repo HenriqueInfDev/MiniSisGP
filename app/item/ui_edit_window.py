@@ -5,9 +5,9 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QLabel, QDoubleSpinBox, QAbstractItemView
 )
 from PySide6.QtCore import Qt
-from ..services.item_service import ItemService
-from ..production import composition_operations # To be refactored later
-from ..ui_utils import NumericTableWidgetItem, show_error_message
+from app.services.item_service import ItemService
+from app.production import composition_operations # To be refactored later
+from app.ui_utils import NumericTableWidgetItem, show_error_message
 
 class EditWindow(QWidget):
     def __init__(self, item_id=None, parent=None):

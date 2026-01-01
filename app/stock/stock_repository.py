@@ -1,6 +1,6 @@
 # app/stock/stock_repository.py
 import sqlite3
-from ..database import get_db_manager
+from app.database import get_db_manager
 
 class StockRepository:
     def __init__(self):

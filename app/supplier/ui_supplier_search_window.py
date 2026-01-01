@@ -5,8 +5,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Signal, Qt
-from ..services.supplier_service import SupplierService
-from ..ui_utils import show_error_message
+from app.services.supplier_service import SupplierService
+from app.ui_utils import show_error_message
 from .ui_supplier_edit_window import SupplierEditWindow
 
 def _safe_str(value):

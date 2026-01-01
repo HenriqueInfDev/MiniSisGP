@@ -1,5 +1,5 @@
 # app/services/stock_service.py
-from ..stock.stock_repository import StockRepository
+from app.stock.stock_repository import StockRepository
 
 class StockService:
     def __init__(self):

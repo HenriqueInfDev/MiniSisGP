@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 
-from ..services.item_service import ItemService
-from ..ui_utils import show_error_message
+from app.services.item_service import ItemService
+from app.ui_utils import show_error_message
 
 
 class SearchWindow(QWidget):

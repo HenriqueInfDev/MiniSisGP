@@ -1,7 +1,7 @@
 # app/item/item_repository.py
 import sqlite3
 from datetime import datetime
-from ..database import get_db_manager
+from app.database import get_db_manager
 
 class ItemRepository:
     def __init__(self):

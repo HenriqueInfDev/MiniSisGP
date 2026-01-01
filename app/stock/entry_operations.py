@@ -1,7 +1,7 @@
 # app/stock/entry_operations.py
 from datetime import datetime
 import sqlite3
-from ..database import get_db_manager
+from app.database import get_db_manager
 
 def create_entry(entry_date, supplier, note_number):
     """

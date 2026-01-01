@@ -1,6 +1,6 @@
 # app/services/supplier_service.py
-from ..supplier.supplier_repository import SupplierRepository
-from ..validators import validate_cpf_cnpj
+from app.supplier.supplier_repository import SupplierRepository
+from app.validators import validate_cpf_cnpj
 
 class SupplierService:
     def __init__(self):

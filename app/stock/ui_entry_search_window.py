@@ -4,8 +4,8 @@ from PySide6.QtWidgets import (
     QComboBox, QPushButton, QTableView, QHeaderView, QAbstractItemView
 )
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from ..services.stock_service import StockService
-from ..ui_utils import show_error_message
+from app.services.stock_service import StockService
+from app.ui_utils import show_error_message
 from .ui_entry_edit_window import EntryEditWindow
 
 class EntrySearchWindow(QWidget):
