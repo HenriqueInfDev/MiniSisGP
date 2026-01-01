@@ -5,15 +5,16 @@ from PySide6.QtWidgets import (
     QLabel, QDateEdit, QAbstractItemView, QDateTimeEdit
 )
 from PySide6.QtCore import QDate, Qt, QDateTime
-from ..services.stock_service import StockService
-from ..services.supplier_service import SupplierService
-from ..item.ui_search_window import SearchWindow
-from ..supplier.ui_supplier_search_window import SupplierSearchWindow
-from ..ui_utils import NumericTableWidgetItem, show_error_message
+from app.services.stock_service import StockService
+from app.services.supplier_service import SupplierService
+from app.item.ui_search_window import SearchWindow
+from app.supplier.ui_supplier_search_window import SupplierSearchWindow
+from app.ui_utils import NumericTableWidgetItem, show_error_message
 
 class EntryEditWindow(QWidget):
-    def __init__(self, entry_id=None):
-        super().__init__()
+    def __init__(self, entry_id=None, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.stock_service = StockService()
         self.supplier_service = SupplierService()
         self.current_entry_id = entry_id
@@ -183,7 +184,7 @@ class EntryEditWindow(QWidget):
 
     def open_supplier_search(self):
         if self.search_supplier_window is None:
-            self.search_supplier_window = SupplierSearchWindow(selection_mode=True)
+            self.search_supplier_window = SupplierSearchWindow(selection_mode=True, parent=self)
             self.search_supplier_window.supplier_selected.connect(self.set_selected_supplier)
             self.search_supplier_window.destroyed.connect(lambda: setattr(self, 'search_supplier_window', None))
             self.search_supplier_window.show()
@@ -197,7 +198,7 @@ class EntryEditWindow(QWidget):
 
     def open_item_search(self):
         if self.search_item_window is None:
-            self.search_item_window = SearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'])
+            self.search_item_window = SearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'], parent=self)
             self.search_item_window.item_selected.connect(self.add_item_from_search)
             self.search_item_window.destroyed.connect(lambda: setattr(self, 'search_item_window', None))
             self.search_item_window.show()
@@ -271,7 +272,7 @@ class EntryEditWindow(QWidget):
     def set_read_only(self, read_only):
         self.date_input.setReadOnly(read_only)
         self.typing_date_input.setReadOnly(read_only)
-        self.supplier_display.setReadOnly(True) # Always read-only
+        self.supplier_display.setReadOnly(True)
 
         supplier_layout = self.main_layout.itemAt(1).widget().layout().itemAt(3, QFormLayout.FieldRole).layout()
         search_button = supplier_layout.itemAt(1).widget()

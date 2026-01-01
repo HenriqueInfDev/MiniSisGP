@@ -10,46 +10,46 @@ project_root = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, project_root)
 
 from app.database import get_db_manager
-from app.item.ui_search_window import SearchWindow
-from app.production.ui_op_window import OPWindow
-from app.stock.ui_entry_search_window import EntrySearchWindow
-from app.supplier.ui_supplier_search_window import SupplierSearchWindow
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.search_window = None
-        self.op_window = None
-        self.entry_search_window = None
-        self.supplier_search_window = None
-
         self.setWindowTitle("GP - MiniSis")
-        self.setWindowIcon(QIcon("app/assets/logo.png"))
+        try:
+            logo_path = os.path.join(project_root, "app", "assets", "logo.png")
+            if os.path.exists(logo_path):
+                self.setWindowIcon(QIcon(logo_path))
+        except Exception as e:
+            print(f"Could not load window icon: {e}")
+
         self.setGeometry(100, 100, 1024, 768)
 
         self.setup_menus()
         self.setup_central_widget()
         self.statusBar().showMessage("Pronto")
 
+        # Child window references
+        self.child_windows = {}
+
     def setup_menus(self):
         menu_bar = self.menuBar()
 
         registers_menu = menu_bar.addMenu("&Cadastros")
         products_action = QAction("Produtos...", self)
-        products_action.triggered.connect(self.open_products_window)
+        products_action.triggered.connect(lambda: self.open_window("item_search"))
         registers_menu.addAction(products_action)
 
         supplier_action = QAction("Fornecedores...", self)
-        supplier_action.triggered.connect(self.open_supplier_search_window)
+        supplier_action.triggered.connect(lambda: self.open_window("supplier_search"))
         registers_menu.addAction(supplier_action)
 
         movement_menu = menu_bar.addMenu("&Movimento")
         entry_action = QAction("Entrada de Insumos...", self)
-        entry_action.triggered.connect(self.open_entry_search_window)
+        entry_action.triggered.connect(lambda: self.open_window("stock_entry_search"))
         movement_menu.addAction(entry_action)
 
         op_action = QAction("Ordem de Produção...", self)
-        op_action.triggered.connect(self.open_op_window)
+        op_action.triggered.connect(lambda: self.open_window("production_order"))
         movement_menu.addAction(op_action)
 
         settings_menu = menu_bar.addMenu("&Configurações")
@@ -59,41 +59,29 @@ class MainWindow(QMainWindow):
         central_widget.setAlignment(Qt.AlignCenter)
         self.setCentralWidget(central_widget)
 
-    def open_products_window(self):
-        if self.search_window is None:
-            self.search_window = SearchWindow(parent=self)
-            self.search_window.destroyed.connect(lambda: setattr(self, 'search_window', None))
-            self.search_window.show()
-        else:
-            self.search_window.activateWindow()
-            self.search_window.raise_()
+    def open_window(self, window_name):
+        if self.child_windows.get(window_name) is None:
+            if window_name == "item_search":
+                from app.item.ui_search_window import SearchWindow
+                window = SearchWindow(parent=self)
+            elif window_name == "supplier_search":
+                from app.supplier.ui_supplier_search_window import SupplierSearchWindow
+                window = SupplierSearchWindow(parent=self)
+            elif window_name == "stock_entry_search":
+                from app.stock.ui_entry_search_window import EntrySearchWindow
+                window = EntrySearchWindow(parent=self)
+            elif window_name == "production_order":
+                from app.production.ui_op_window import OPWindow
+                window = OPWindow(parent=self)
+            else:
+                return
 
-    def open_supplier_search_window(self):
-        if self.supplier_search_window is None:
-            self.supplier_search_window = SupplierSearchWindow(parent=self)
-            self.supplier_search_window.destroyed.connect(lambda: setattr(self, 'supplier_search_window', None))
-            self.supplier_search_window.show()
+            self.child_windows[window_name] = window
+            window.destroyed.connect(lambda: self.child_windows.pop(window_name, None))
+            window.show()
         else:
-            self.supplier_search_window.activateWindow()
-            self.supplier_search_window.raise_()
-
-    def open_op_window(self):
-        if self.op_window is None:
-            self.op_window = OPWindow(parent=self)
-            self.op_window.destroyed.connect(lambda: setattr(self, 'op_window', None))
-            self.op_window.show()
-        else:
-            self.op_window.activateWindow()
-            self.op_window.raise_()
-
-    def open_entry_search_window(self):
-        if self.entry_search_window is None:
-            self.entry_search_window = EntrySearchWindow(parent=self)
-            self.entry_search_window.destroyed.connect(lambda: setattr(self, 'entry_search_window', None))
-            self.entry_search_window.show()
-        else:
-            self.entry_search_window.activateWindow()
-            self.entry_search_window.raise_()
+            self.child_windows[window_name].activateWindow()
+            self.child_windows[window_name].raise_()
 
 def main():
     print("Inicializando o banco de dados...")

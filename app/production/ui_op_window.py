@@ -13,6 +13,7 @@ from app.ui_utils import NumericTableWidgetItem, show_error_message
 class OPWindow(QWidget):
     def __init__(self, op_id=None, parent=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.production_service = ProductionService()
         self.current_op_id = op_id
         self.search_item_window = None
@@ -157,7 +158,6 @@ class OPWindow(QWidget):
         qty_item = NumericTableWidgetItem(str(item['QUANTIDADE_PRODUZIR']))
         unit_item = QTableWidgetItem(item['UNIDADE'].upper())
 
-        # Apenas a célula de quantidade deve ser editável
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable)
         desc_item.setFlags(desc_item.flags() & ~Qt.ItemIsEditable)
         unit_item.setFlags(unit_item.flags() & ~Qt.ItemIsEditable)

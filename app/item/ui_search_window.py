@@ -1,41 +1,31 @@
-# app/ui_search_window.py
+# app/item/ui_search_window.py
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout, QLineEdit,
+    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
     QComboBox, QPushButton, QTableView, QHeaderView, QAbstractItemView
 )
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-
 from app.services.item_service import ItemService
 from app.ui_utils import show_error_message
 
-
 class SearchWindow(QWidget):
-    # Sinal que emitirá os dados do item selecionado
     item_selected = Signal(dict)
 
     def __init__(self, selection_mode=False, item_type_filter=None, parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.item_service = ItemService()
-        self.edit_window = None # Para manter referência da janela de edição
+        self.edit_window = None
         self.selection_mode = selection_mode
-        self.item_type_filter = item_type_filter # Lista de tipos de item a exibir
+        self.item_type_filter = item_type_filter
 
         title = "Selecionar Insumo" if selection_mode else "Pesquisa de Produto"
         self.setWindowTitle(title)
         self.setGeometry(150, 150, 800, 600)
 
-        # Layout Principal
         self.main_layout = QVBoxLayout(self)
-
-        # --- Grupo de Pesquisa ---
         self.create_search_group()
-
-        # --- Grupo de Resultados ---
         self.create_results_group()
-
-        # Carrega os itens na inicialização
         self.load_items()
 
     def create_search_group(self):
@@ -46,7 +36,7 @@ class SearchWindow(QWidget):
         self.search_field_combo.addItems(["Descrição", "ID", "Unidade", "Quantidade"])
 
         self.search_text = QLineEdit()
-        self.search_text.returnPressed.connect(self.load_items) # Busca ao pressionar Enter
+        self.search_text.returnPressed.connect(self.load_items)
 
         search_button = QPushButton("Buscar")
         search_button.clicked.connect(self.load_items)
@@ -55,7 +45,7 @@ class SearchWindow(QWidget):
         new_button.clicked.connect(self.open_new_item_window)
 
         search_layout.addWidget(self.search_field_combo)
-        search_layout.addWidget(self.search_text, 1) # O campo de texto se expande
+        search_layout.addWidget(self.search_text, 1)
         search_layout.addWidget(search_button)
         search_layout.addWidget(new_button)
         search_group.setLayout(search_layout)
@@ -72,7 +62,7 @@ class SearchWindow(QWidget):
         self.table_view.setModel(self.table_model)
         header = self.table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch) # Coluna "Descrição"
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
@@ -85,20 +75,12 @@ class SearchWindow(QWidget):
         self.main_layout.addWidget(results_group)
 
     def load_items(self):
-        """Carrega os itens na tabela, usando o ItemService."""
         search_type_text = self.search_field_combo.currentText()
         search_content = self.search_text.text()
         self.table_model.removeRows(0, self.table_model.rowCount())
 
         if search_content:
-            search_type_map = {
-                "Descrição": "Descrição",
-                "ID": "ID",
-                "Unidade": "Unidade",
-                "Quantidade": "Quantidade"
-            }
-            search_type = search_type_map.get(search_type_text, "Descrição")
-            response = self.item_service.search_items(search_type, search_content)
+            response = self.item_service.search_items(search_type_text, search_content)
         else:
             response = self.item_service.get_all_items()
 
@@ -106,7 +88,6 @@ class SearchWindow(QWidget):
             show_error_message(self, response["message"])
             return
 
-        # Aplica o filtro de tipo de item, se existir
         items = response["data"]
         if self.item_type_filter:
             items = [item for item in items if item['TIPO_ITEM'] in self.item_type_filter]
@@ -129,19 +110,9 @@ class SearchWindow(QWidget):
                 qty_item,
                 cost_item
             ]
-            # Adiciona a linha à tabela primeiro
             self.table_model.appendRow(row)
-            # Agora que a linha existe, podemos adicionar o dado extra
             row_index = self.table_model.rowCount() - 1
-            full_item_data = {
-                'ID': item['ID'],
-                'DESCRICAO': item['DESCRICAO'],
-                'TIPO_ITEM': item['TIPO_ITEM'],
-                'SIGLA': item['SIGLA'],
-                'SALDO_ESTOQUE': item['SALDO_ESTOQUE'],
-                'CUSTO_MEDIO': item['CUSTO_MEDIO']
-            }
-            self.table_model.item(row_index, 0).setData(full_item_data)
+            self.table_model.item(row_index, 0).setData(item)
 
     def handle_double_click(self, model_index):
         if self.selection_mode:
@@ -152,16 +123,13 @@ class SearchWindow(QWidget):
             self.open_edit_item_window(model_index)
 
     def open_new_item_window(self):
-        # Passa None para indicar que é um novo item
         self.show_edit_window(item_id=None)
 
     def open_edit_item_window(self, model_index):
-        # Pega o ID do item da tabela e passa para a janela de edição
         item_data = self.table_model.item(model_index.row(), 0).data()
         self.show_edit_window(item_id=item_data['ID'])
 
     def show_edit_window(self, item_id):
-        """Abre a janela de edição, garantindo que apenas uma instância exista e limpando a referência quando fechada."""
         from app.item.ui_edit_window import EditWindow
         if self.edit_window is None:
             self.edit_window = EditWindow(item_id=item_id, parent=self)
@@ -172,6 +140,5 @@ class SearchWindow(QWidget):
             self.edit_window.raise_()
 
     def on_edit_window_closed(self):
-        """Slot para limpar a referência da janela de edição e recarregar os itens."""
         self.edit_window = None
         self.load_items()

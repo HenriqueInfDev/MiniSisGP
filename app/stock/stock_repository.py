@@ -11,7 +11,7 @@ class StockRepository:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO ENTRADANOTA (DATA_ENTRADA, DATA_DIGITACAO, ID_FORNECEDOR, NUMERO_NOTA, STATUS) VALUES (?, ?, ?, ?, 'Em Aberto')",
+                "INSERT INTO TENTRADANOTA (DATA_ENTRADA, DATA_DIGITACAO, ID_FORNECEDOR, NUMERO_NOTA, STATUS) VALUES (?, ?, ?, ?, 'Em Aberto')",
                 (entry_date, typing_date, supplier_id, note_number)
             )
             entry_id = cursor.lastrowid
@@ -25,7 +25,7 @@ class StockRepository:
         conn = self.db_manager.get_connection()
         try:
             conn.execute(
-                "UPDATE ENTRADANOTA SET DATA_ENTRADA = ?, DATA_DIGITACAO = ?, ID_FORNECEDOR = ?, NUMERO_NOTA = ? WHERE ID = ?",
+                "UPDATE TENTRADANOTA SET DATA_ENTRADA = ?, DATA_DIGITACAO = ?, ID_FORNECEDOR = ?, NUMERO_NOTA = ? WHERE ID = ?",
                 (entry_date, typing_date, supplier_id, note_number, entry_id)
             )
             conn.commit()
@@ -39,10 +39,10 @@ class StockRepository:
         try:
             with conn:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM ENTRADANOTA_ITENS WHERE ID_ENTRADA = ?", (entry_id,))
+                cursor.execute("DELETE FROM TENTRADANOTA_ITENS WHERE ID_ENTRADA = ?", (entry_id,))
                 if items:
                     cursor.executemany(
-                        "INSERT INTO ENTRADANOTA_ITENS (ID_ENTRADA, ID_INSUMO, QUANTIDADE, VALOR_UNITARIO) VALUES (?, ?, ?, ?)",
+                        "INSERT INTO TENTRADANOTA_ITENS (ID_ENTRADA, ID_INSUMO, QUANTIDADE, VALOR_UNITARIO) VALUES (?, ?, ?, ?)",
                         [(entry_id, item['id_insumo'], item['quantidade'], item['valor_unitario']) for item in items]
                     )
             return True
@@ -51,14 +51,14 @@ class StockRepository:
 
     def get_entry_details(self, entry_id):
         conn = self.db_manager.get_connection()
-        master = conn.execute("SELECT * FROM ENTRADANOTA WHERE ID = ?", (entry_id,)).fetchone()
+        master = conn.execute("SELECT * FROM TENTRADANOTA WHERE ID = ?", (entry_id,)).fetchone()
         if not master:
             return None
         items = conn.execute("""
             SELECT tei.ID, tei.ID_INSUMO, i.DESCRICAO, u.SIGLA, tei.QUANTIDADE, tei.VALOR_UNITARIO
-            FROM ENTRADANOTA_ITENS tei
-            JOIN ITEM i ON tei.ID_INSUMO = i.ID
-            JOIN UNIDADE u ON i.ID_UNIDADE = u.ID
+            FROM TENTRADANOTA_ITENS tei
+            JOIN TITEM i ON tei.ID_INSUMO = i.ID
+            JOIN TUNIDADE u ON i.ID_UNIDADE = u.ID
             WHERE tei.ID_ENTRADA = ?
         """, (entry_id,)).fetchall()
         return {"master": dict(master), "items": [dict(row) for row in items]}
@@ -67,8 +67,8 @@ class StockRepository:
         conn = self.db_manager.get_connection()
         query = """
             SELECT T.ID, T.DATA_ENTRADA, T.DATA_DIGITACAO, F.NOME_FANTASIA AS FORNECEDOR, T.NUMERO_NOTA, T.VALOR_TOTAL, T.STATUS
-            FROM ENTRADANOTA T
-            LEFT JOIN FORNECEDOR F ON T.ID_FORNECEDOR = F.ID
+            FROM TENTRADANOTA T
+            LEFT JOIN TFORNECEDOR F ON T.ID_FORNECEDOR = F.ID
         """
         params = ()
         if search_term:
@@ -96,16 +96,16 @@ class StockRepository:
                 for item in details['items']:
                     insumo_id, quantity, unit_cost = item['ID_INSUMO'], item['QUANTIDADE'], item['VALOR_UNITARIO']
                     total_value += quantity * unit_cost
-                    current_item = cursor.execute("SELECT SALDO_ESTOQUE, CUSTO_MEDIO FROM ITEM WHERE ID = ?", (insumo_id,)).fetchone()
+                    current_item = cursor.execute("SELECT SALDO_ESTOQUE, CUSTO_MEDIO FROM TITEM WHERE ID = ?", (insumo_id,)).fetchone()
                     old_balance, old_avg_cost = current_item['SALDO_ESTOQUE'], current_item['CUSTO_MEDIO']
                     new_balance = old_balance + quantity
                     new_avg_cost = ((old_balance * old_avg_cost) + (quantity * unit_cost)) / new_balance if new_balance > 0 else 0
-                    cursor.execute("UPDATE ITEM SET SALDO_ESTOQUE = ?, CUSTO_MEDIO = ? WHERE ID = ?", (new_balance, new_avg_cost, insumo_id))
+                    cursor.execute("UPDATE TITEM SET SALDO_ESTOQUE = ?, CUSTO_MEDIO = ? WHERE ID = ?", (new_balance, new_avg_cost, insumo_id))
                     cursor.execute(
-                        "INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, VALOR_UNITARIO, DATA_MOVIMENTO) VALUES (?, 'Entrada por Nota', ?, ?, ?)",
+                        "INSERT INTO TMOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, VALOR_UNITARIO, DATA_MOVIMENTO) VALUES (?, 'Entrada por Nota', ?, ?, ?)",
                         (insumo_id, quantity, unit_cost, details['master']['DATA_ENTRADA'])
                     )
-                cursor.execute("UPDATE ENTRADANOTA SET VALOR_TOTAL = ?, STATUS = 'Finalizada' WHERE ID = ?", (total_value, entry_id))
+                cursor.execute("UPDATE TENTRADANOTA SET VALOR_TOTAL = ?, STATUS = 'Finalizada' WHERE ID = ?", (total_value, entry_id))
             return True, total_value
         except sqlite3.Error:
             conn.rollback()

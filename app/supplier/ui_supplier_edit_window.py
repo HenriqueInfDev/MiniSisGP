@@ -9,8 +9,9 @@ from app.services.supplier_service import SupplierService
 from app.ui_utils import show_error_message
 
 class SupplierEditWindow(QWidget):
-    def __init__(self, supplier_id=None):
-        super().__init__()
+    def __init__(self, supplier_id=None, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.supplier_service = SupplierService()
         self.current_supplier_id = supplier_id
 

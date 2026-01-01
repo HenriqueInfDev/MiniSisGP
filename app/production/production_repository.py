@@ -12,12 +12,12 @@ class ProductionRepository:
         try:
             current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             op_id = cursor.execute(
-                "INSERT INTO ORDEMPRODUCAO (DATA_CRIACAO, DATA_PREVISTA, STATUS) VALUES (?, ?, 'Planejada')",
+                "INSERT INTO TORDEMPRODUCAO (DATA_CRIACAO, DATA_PREVISTA, STATUS) VALUES (?, ?, 'Planejada')",
                 (current_date, due_date)
             ).lastrowid
             for item in items_to_produce:
                 cursor.execute(
-                    "INSERT INTO ORDEMPRODUCAO_ITENS (ID_ORDEM_PRODUCAO, ID_PRODUTO, QUANTIDADE_PRODUZIR) VALUES (?, ?, ?)",
+                    "INSERT INTO TORDEMPRODUCAO_ITENS (ID_ORDEM_PRODUCAO, ID_PRODUTO, QUANTIDADE_PRODUZIR) VALUES (?, ?, ?)",
                     (op_id, item['id_produto'], item['quantidade'])
                 )
             conn.commit()
@@ -31,11 +31,11 @@ class ProductionRepository:
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("UPDATE ORDEMPRODUCAO SET DATA_PREVISTA = ? WHERE ID = ?", (due_date, op_id))
-            cursor.execute("DELETE FROM ORDEMPRODUCAO_ITENS WHERE ID_ORDEM_PRODUCAO = ?", (op_id,))
+            cursor.execute("UPDATE TORDEMPRODUCAO SET DATA_PREVISTA = ? WHERE ID = ?", (due_date, op_id))
+            cursor.execute("DELETE FROM TORDEMPRODUCAO_ITENS WHERE ID_ORDEM_PRODUCAO = ?", (op_id,))
             for item in items_to_produce:
                 cursor.execute(
-                    "INSERT INTO ORDEMPRODUCAO_ITENS (ID_ORDEM_PRODUCAO, ID_PRODUTO, QUANTIDADE_PRODUZIR) VALUES (?, ?, ?)",
+                    "INSERT INTO TORDEMPRODUCAO_ITENS (ID_ORDEM_PRODUCAO, ID_PRODUTO, QUANTIDADE_PRODUZIR) VALUES (?, ?, ?)",
                     (op_id, item['id_produto'], item['quantidade'])
                 )
             conn.commit()
@@ -47,21 +47,21 @@ class ProductionRepository:
 
     def get_op_details(self, op_id):
         conn = self.db_manager.get_connection()
-        op_master = conn.execute("SELECT * FROM ORDEMPRODUCAO WHERE ID = ?", (op_id,)).fetchone()
+        op_master = conn.execute("SELECT * FROM TORDEMPRODUCAO WHERE ID = ?", (op_id,)).fetchone()
         if not op_master:
             return None
         op_items = conn.execute("""
             SELECT OPI.ID_PRODUTO, I.DESCRICAO, OPI.QUANTIDADE_PRODUZIR, U.SIGLA AS UNIDADE
-            FROM ORDEMPRODUCAO_ITENS OPI
-            JOIN ITEM I ON OPI.ID_PRODUTO = I.ID
-            JOIN UNIDADE U ON I.ID_UNIDADE = U.ID
+            FROM TORDEMPRODUCAO_ITENS OPI
+            JOIN TITEM I ON OPI.ID_PRODUTO = I.ID
+            JOIN TUNIDADE U ON I.ID_UNIDADE = U.ID
             WHERE OPI.ID_ORDEM_PRODUCAO = ?
         """, (op_id,)).fetchall()
         return {"master": dict(op_master), "items": [dict(row) for row in op_items]}
 
     def list_ops(self, search_term="", search_field="id"):
         conn = self.db_manager.get_connection()
-        query = "SELECT ID, DATA_CRIACAO, DATA_PREVISTA, STATUS FROM ORDEMPRODUCAO"
+        query = "SELECT ID, DATA_CRIACAO, DATA_PREVISTA, STATUS FROM TORDEMPRODUCAO"
         params = ()
         if search_term:
             allowed_fields = {"ID": "ID", "STATUS": "STATUS"}

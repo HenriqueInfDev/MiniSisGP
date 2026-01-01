@@ -13,6 +13,7 @@ class OPSearchWindow(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.production_service = ProductionService()
         self.setWindowTitle("Pesquisa de Ordens de Produção")
         self.setGeometry(200, 200, 800, 600)

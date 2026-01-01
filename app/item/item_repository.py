@@ -1,7 +1,7 @@
 # app/item/item_repository.py
 import sqlite3
 from datetime import datetime
-from ..database import get_db_manager
+from app.database import get_db_manager
 
 class ItemRepository:
     def __init__(self):
@@ -12,7 +12,7 @@ class ItemRepository:
             conn = self.db_manager.get_connection()
             cursor = conn.cursor()
             cursor.execute(
-                'INSERT INTO ITEM (DESCRICAO, TIPO_ITEM, ID_UNIDADE) VALUES (?, ?, ?)',
+                'INSERT INTO TITEM (DESCRICAO, TIPO_ITEM, ID_UNIDADE) VALUES (?, ?, ?)',
                 (description, item_type, unit_id)
             )
             new_id = cursor.lastrowid
@@ -26,24 +26,24 @@ class ItemRepository:
         conn = self.db_manager.get_connection()
         return conn.execute('''
             SELECT I.ID, I.DESCRICAO, I.TIPO_ITEM, U.SIGLA, I.SALDO_ESTOQUE, I.CUSTO_MEDIO
-            FROM ITEM I
-            JOIN UNIDADE U ON I.ID_UNIDADE = U.ID
+            FROM TITEM I
+            JOIN TUNIDADE U ON I.ID_UNIDADE = U.ID
             ORDER BY I.ID
         ''').fetchall()
 
     def get_by_id(self, item_id):
         conn = self.db_manager.get_connection()
-        return conn.execute('SELECT * FROM ITEM WHERE ID = ?', (item_id,)).fetchone()
+        return conn.execute('SELECT * FROM TITEM WHERE ID = ?', (item_id,)).fetchone()
 
     def list_units(self):
         conn = self.db_manager.get_connection()
-        return conn.execute('SELECT ID, NOME, SIGLA FROM UNIDADE').fetchall()
+        return conn.execute('SELECT ID, NOME, SIGLA FROM TUNIDADE').fetchall()
 
     def update(self, item_id, description, item_type, unit_id):
         try:
             conn = self.db_manager.get_connection()
             conn.execute(
-                'UPDATE ITEM SET DESCRICAO = ?, TIPO_ITEM = ?, ID_UNIDADE = ? WHERE ID = ?',
+                'UPDATE TITEM SET DESCRICAO = ?, TIPO_ITEM = ?, ID_UNIDADE = ? WHERE ID = ?',
                 (description, item_type, unit_id, item_id)
             )
             conn.commit()
@@ -56,7 +56,7 @@ class ItemRepository:
         try:
             conn = self.db_manager.get_connection()
             cursor = conn.cursor()
-            cursor.execute('DELETE FROM ITEM WHERE ID = ?', (item_id,))
+            cursor.execute('DELETE FROM TITEM WHERE ID = ?', (item_id,))
             conn.commit()
             return cursor.rowcount > 0
         except sqlite3.Error:
@@ -66,40 +66,40 @@ class ItemRepository:
     def update_stock_and_cost(self, item_id, new_balance, new_average_cost):
         conn = self.db_manager.get_connection()
         conn.execute(
-            'UPDATE ITEM SET SALDO_ESTOQUE = ?, CUSTO_MEDIO = ? WHERE ID = ?',
+            'UPDATE TITEM SET SALDO_ESTOQUE = ?, CUSTO_MEDIO = ? WHERE ID = ?',
             (new_balance, new_average_cost, item_id)
         )
 
     def add_stock_movement(self, item_id, movement_type, quantity, unit_value):
         conn = self.db_manager.get_connection()
         conn.execute(
-            '''INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, VALOR_UNITARIO, DATA_MOVIMENTO)
+            '''INSERT INTO TMOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, VALOR_UNITARIO, DATA_MOVIMENTO)
                VALUES (?, ?, ?, ?, ?)''',
             (item_id, movement_type, quantity, unit_value, datetime.now().isoformat())
         )
 
     def is_item_in_composition(self, item_id):
         conn = self.db_manager.get_connection()
-        return conn.execute('SELECT 1 FROM COMPOSICAO WHERE ID_INSUMO = ?', (item_id,)).fetchone() is not None
+        return conn.execute('SELECT 1 FROM TCOMPOSICAO WHERE ID_INSUMO = ?', (item_id,)).fetchone() is not None
 
     def is_item_in_production_order(self, item_id):
         conn = self.db_manager.get_connection()
-        return conn.execute('SELECT 1 FROM ORDEMPRODUCAO_ITENS WHERE ID_PRODUTO = ?', (item_id,)).fetchone() is not None
+        return conn.execute('SELECT 1 FROM TORDEMPRODUCAO_ITENS WHERE ID_PRODUTO = ?', (item_id,)).fetchone() is not None
 
     def has_stock_movement(self, item_id):
         conn = self.db_manager.get_connection()
-        return conn.execute('SELECT 1 FROM MOVIMENTO WHERE ID_ITEM = ?', (item_id,)).fetchone() is not None
+        return conn.execute('SELECT 1 FROM TMOVIMENTO WHERE ID_ITEM = ?', (item_id,)).fetchone() is not None
 
     def has_composition(self, item_id):
         conn = self.db_manager.get_connection()
-        return conn.execute('SELECT 1 FROM COMPOSICAO WHERE ID_PRODUTO = ?', (item_id,)).fetchone() is not None
+        return conn.execute('SELECT 1 FROM TCOMPOSICAO WHERE ID_PRODUTO = ?', (item_id,)).fetchone() is not None
 
     def search(self, search_type, search_text):
         conn = self.db_manager.get_connection()
         base_query = '''
             SELECT I.ID, I.DESCRICAO, I.TIPO_ITEM, U.SIGLA, I.SALDO_ESTOQUE, I.CUSTO_MEDIO
-            FROM ITEM I
-            JOIN UNIDADE U ON I.ID_UNIDADE = U.ID
+            FROM TITEM I
+            JOIN TUNIDADE U ON I.ID_UNIDADE = U.ID
         '''
         params = ()
         if search_type == 'ID':
