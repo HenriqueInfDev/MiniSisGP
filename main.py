@@ -27,6 +27,11 @@ class MainWindow(QMainWindow):
         from app.supplier.ui_search_window import SupplierSearchWindow
         self._add_menu_action(registers_menu, "Fornecedores...", "supplier_search_window", SupplierSearchWindow)
 
+        registers_menu.addSeparator()
+
+        from app.item.ui_unit_window import UnitWindow
+        self._add_menu_action(registers_menu, "Unidades de Medida...", "unit_window", UnitWindow)
+
         # Menu Movimento
         movement_menu = menu_bar.addMenu("&Movimento")
 
