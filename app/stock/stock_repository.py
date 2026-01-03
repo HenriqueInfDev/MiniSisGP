@@ -6,13 +6,13 @@ class StockRepository:
     def __init__(self):
         self.db_manager = get_db_manager()
 
-    def create_entry(self, data, entry_date, typing_date, supplier_id, note_number, observacao):
+    def create_entry(self, entry_date, typing_date, supplier_id, note_number, observacao):
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO ENTRADANOTA (DATA, DATA_ENTRADA, DATA_DIGITACAO, ID_FORNECEDOR, NUMERO_NOTA, OBSERVACAO, STATUS) VALUES (?, ?, ?, ?, ?, ?, 'Em Aberto')",
-                (data, entry_date, typing_date, supplier_id, note_number, observacao)
+                "INSERT INTO ENTRADANOTA (DATA_ENTRADA, DATA_DIGITACAO, ID_FORNECEDOR, NUMERO_NOTA, OBSERVACAO, STATUS) VALUES (?, ?, ?, ?, ?, 'Em Aberto')",
+                (entry_date, typing_date, supplier_id, note_number, observacao)
             )
             entry_id = cursor.lastrowid
             conn.commit()
@@ -21,12 +21,12 @@ class StockRepository:
             conn.rollback()
             return None
 
-    def update_entry_master(self, entry_id, data, entry_date, typing_date, supplier_id, note_number, observacao):
+    def update_entry_master(self, entry_id, entry_date, typing_date, supplier_id, note_number, observacao):
         conn = self.db_manager.get_connection()
         try:
             conn.execute(
-                "UPDATE ENTRADANOTA SET DATA = ?, DATA_ENTRADA = ?, DATA_DIGITACAO = ?, ID_FORNECEDOR = ?, NUMERO_NOTA = ?, OBSERVACAO = ? WHERE ID = ?",
-                (data, entry_date, typing_date, supplier_id, note_number, observacao, entry_id)
+                "UPDATE ENTRADANOTA SET DATA_ENTRADA = ?, DATA_DIGITACAO = ?, ID_FORNECEDOR = ?, NUMERO_NOTA = ?, OBSERVACAO = ? WHERE ID = ?",
+                (entry_date, typing_date, supplier_id, note_number, observacao, entry_id)
             )
             conn.commit()
             return True

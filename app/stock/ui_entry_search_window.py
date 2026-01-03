@@ -45,7 +45,7 @@ class EntrySearchWindow(QWidget):
         results_layout = QVBoxLayout()
         self.table_view = QTableView()
         self.table_model = QStandardItemModel()
-        self.table_model.setHorizontalHeaderLabels(["ID", "Data Entrada", "Data Digitação", "Fornecedor", "Nº Nota", "Valor Total", "Status"])
+        self.table_model.setHorizontalHeaderLabels(["ID", "Data Entrada", "Fornecedor", "Nº Nota", "Valor Total", "Status"])
         self.table_view.setModel(self.table_model)
 
         header = self.table_view.horizontalHeader()
@@ -74,7 +74,6 @@ class EntrySearchWindow(QWidget):
                 row = [
                     QStandardItem(str(entry['ID'])),
                     QStandardItem(entry.get('DATA_ENTRADA', '')),
-                    QStandardItem(entry.get('DATA_DIGITACAO', '')),
                     QStandardItem(entry.get('FORNECEDOR', '')),
                     QStandardItem(entry.get('NUMERO_NOTA', '')),
                     QStandardItem(f"{entry.get('VALOR_TOTAL', 0):.2f}" if entry.get('VALOR_TOTAL') is not None else "N/A"),

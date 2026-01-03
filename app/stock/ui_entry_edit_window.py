@@ -67,11 +67,7 @@ class EntryEditWindow(QWidget):
         self.observacao_input = QLineEdit()
         self.status_display = QLabel("Em Aberto")
 
-        self.data_input = QDateEdit(calendarPopup=True)
-        self.data_input.setDate(QDate.currentDate())
-
         form.addRow("ID da Entrada:", self.entry_id_display)
-        form.addRow("Data:", self.data_input)
         form.addRow("Data da Entrada:", self.date_input)
         form.addRow("Data de Digitação:", self.typing_date_input)
         form.addRow("Fornecedor:", supplier_layout)
@@ -116,7 +112,6 @@ class EntryEditWindow(QWidget):
         self.selected_supplier_id = None
         self.setWindowTitle("Nova Entrada de Insumo")
         self.entry_id_display.setText("(Nova)")
-        self.data_input.setDate(QDate.currentDate())
         self.date_input.setDate(QDate.currentDate())
         self.typing_date_input.setDateTime(QDateTime.currentDateTime())
         self.supplier_display.clear()
@@ -127,7 +122,6 @@ class EntryEditWindow(QWidget):
         self.set_read_only(False)
 
     def save_entry(self):
-        data = self.data_input.date().toString("yyyy-MM-dd")
         entry_date = self.date_input.date().toString("yyyy-MM-dd")
         typing_date = self.typing_date_input.dateTime().toString("yyyy-MM-dd HH:mm:ss")
         note_number = self.note_number_input.text()
@@ -146,13 +140,13 @@ class EntryEditWindow(QWidget):
             })
 
         if self.current_entry_id:
-            response = self.stock_service.update_entry(self.current_entry_id, data, entry_date, typing_date, self.selected_supplier_id, note_number, observacao, items)
+            response = self.stock_service.update_entry(self.current_entry_id, entry_date, typing_date, self.selected_supplier_id, note_number, observacao, items)
             if response["success"]:
                 QMessageBox.information(self, "Sucesso", response["message"])
             else:
                 show_error_message(self, "Error", response["message"])
         else:
-            response = self.stock_service.create_entry(data, entry_date, typing_date, self.selected_supplier_id, note_number, observacao)
+            response = self.stock_service.create_entry(entry_date, typing_date, self.selected_supplier_id, note_number, observacao)
             if response["success"]:
                 self.current_entry_id = response["data"]
                 self.stock_service.update_entry_items(self.current_entry_id, items)
@@ -172,7 +166,6 @@ class EntryEditWindow(QWidget):
         details = response["data"]
         master = details['master']
         self.entry_id_display.setText(str(master['ID']))
-        self.data_input.setDate(QDate.fromString(master['DATA'], "yyyy-MM-dd"))
         self.date_input.setDate(QDate.fromString(master['DATA_ENTRADA'], "yyyy-MM-dd"))
         self.typing_date_input.setDateTime(QDateTime.fromString(master['DATA_DIGITACAO'], "yyyy-MM-dd HH:mm:ss"))
 
