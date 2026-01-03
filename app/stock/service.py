@@ -23,7 +23,8 @@ class StockService:
             return {"success": False, "message": "Todos os campos do cabeçalho são obrigatórios."}
 
         try:
-            self.stock_repository.update_entry_master(entry_id, entry_date, typing_date, note_number, observacao)
+            total_value = sum(item['quantidade'] * item['valor_unitario'] for item in items)
+            self.stock_repository.update_entry_master(entry_id, entry_date, typing_date, note_number, observacao, total_value)
             self.stock_repository.update_entry_items(entry_id, items)
             return {"success": True, "message": "Nota de entrada atualizada com sucesso."}
         except Exception as e:

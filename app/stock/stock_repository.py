@@ -11,7 +11,7 @@ class StockRepository:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO ENTRADANOTA (DATA_ENTRADA, DATA_DIGITACAO, NUMERO_NOTA, OBSERVACAO, STATUS) VALUES (?, ?, ?, ?, 'Em Aberto')",
+                "INSERT INTO ENTRADANOTA (DATA_ENTRADA, DATA_DIGITACAO, NUMERO_NOTA, OBSERVACAO, STATUS, VALOR_TOTAL) VALUES (?, ?, ?, ?, 'Em Aberto', 0.0)",
                 (entry_date, typing_date, note_number, observacao)
             )
             entry_id = cursor.lastrowid
@@ -22,12 +22,12 @@ class StockRepository:
             print(f"Database error in create_entry: {e}")
             return None
 
-    def update_entry_master(self, entry_id, entry_date, typing_date, note_number, observacao):
+    def update_entry_master(self, entry_id, entry_date, typing_date, note_number, observacao, total_value):
         conn = self.db_manager.get_connection()
         try:
             conn.execute(
-                "UPDATE ENTRADANOTA SET DATA_ENTRADA = ?, DATA_DIGITACAO = ?, NUMERO_NOTA = ?, OBSERVACAO = ? WHERE ID = ?",
-                (entry_date, typing_date, note_number, observacao, entry_id)
+                "UPDATE ENTRADANOTA SET DATA_ENTRADA = ?, DATA_DIGITACAO = ?, NUMERO_NOTA = ?, OBSERVACAO = ?, VALOR_TOTAL = ? WHERE ID = ?",
+                (entry_date, typing_date, note_number, observacao, total_value, entry_id)
             )
             conn.commit()
             return True

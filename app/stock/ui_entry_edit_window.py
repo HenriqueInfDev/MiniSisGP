@@ -84,7 +84,7 @@ class EntryEditWindow(QWidget):
         items_layout = QVBoxLayout()
         self.items_table = QTableWidget()
         self.items_table.setColumnCount(7)
-        self.items_table.setHorizontalHeaderLabels(["ID Insumo", "Descrição", "Un.", "Fornecedor", "Quantidade", "Valor Unit.", "Valor Total"])
+        self.items_table.setHorizontalHeaderLabels(["ID Insumo", "Descrição", "Fornecedor", "Quantidade", "Un.", "Valor Unit.", "Valor Total"])
         self.items_table.verticalHeader().setVisible(False)
         self.items_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.items_table.setColumnHidden(0, True)
@@ -94,12 +94,15 @@ class EntryEditWindow(QWidget):
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
         self.supplier_delegate = SupplierDelegate(self.items_table)
-        self.items_table.setItemDelegateForColumn(3, self.supplier_delegate)
+        self.items_table.setItemDelegateForColumn(2, self.supplier_delegate)
 
         self.items_table.cellChanged.connect(self.on_cell_changed)
         items_layout.addWidget(self.items_table)
 
         buttons_layout = QHBoxLayout()
+        self.total_label = QLabel("Valor Total da Nota: R$ 0.00")
+        buttons_layout.addWidget(self.total_label)
+        buttons_layout.addStretch()
         self.add_item_button = QPushButton("Adicionar Insumo")
         self.add_item_button.setObjectName("add_item_button")
         self.add_item_button.clicked.connect(self.open_item_search)
@@ -134,11 +137,11 @@ class EntryEditWindow(QWidget):
 
         items = []
         for row in range(self.items_table.rowCount()):
-            supplier_id = self.items_table.item(row, 3).data(Qt.UserRole)
+            supplier_id = self.items_table.item(row, 2).data(Qt.UserRole)
             items.append({
                 'id_insumo': int(self.items_table.item(row, 0).text()),
                 'id_fornecedor': supplier_id,
-                'quantidade': float(self.items_table.item(row, 4).text().replace(',', '.')),
+                'quantidade': float(self.items_table.item(row, 3).text().replace(',', '.')),
                 'valor_unitario': float(self.items_table.item(row, 5).text().replace(',', '.'))
             })
 
@@ -248,23 +251,26 @@ class EntryEditWindow(QWidget):
         desc_item = QTableWidgetItem(item['DESCRICAO'])
         self.items_table.setItem(row, 1, desc_item)
 
-        unit_item = QTableWidgetItem(item['SIGLA'].upper())
-        self.items_table.setItem(row, 2, unit_item)
-
         supplier_item = QTableWidgetItem(item['FORNECEDOR'] if 'FORNECEDOR' in item and item['FORNECEDOR'] else '')
         supplier_item.setData(Qt.UserRole, item['ID_FORNECEDOR'] if 'ID_FORNECEDOR' in item else None)
-        self.items_table.setItem(row, 3, supplier_item)
+        self.items_table.setItem(row, 2, supplier_item)
 
-        self.items_table.setItem(row, 4, NumericTableWidgetItem(str(item['QUANTIDADE'])))
+        self.items_table.setItem(row, 3, NumericTableWidgetItem(str(item['QUANTIDADE'])))
+
+        unit_item = QTableWidgetItem(item['SIGLA'].upper())
+        self.items_table.setItem(row, 4, unit_item)
+
         self.items_table.setItem(row, 5, NumericTableWidgetItem(f"{item['VALOR_UNITARIO']:.2f}"))
         total = item['QUANTIDADE'] * item['VALOR_UNITARIO']
         self.items_table.setItem(row, 6, NumericTableWidgetItem(f"{total:.2f}"))
 
         # Colunas não editáveis
-        for col in [0, 1, 2]:
-             self.items_table.item(row, col).setFlags(self.items_table.item(row, col).flags() & ~Qt.ItemIsEditable)
+        for col in [0, 1, 4]: # ID, Descrição, Un.
+            if self.items_table.item(row, col):
+                 self.items_table.item(row, col).setFlags(self.items_table.item(row, col).flags() & ~Qt.ItemIsEditable)
 
         self.items_table.blockSignals(False)
+        self.update_total_value()
 
     def remove_item(self):
         rows = self.items_table.selectionModel().selectedRows()
@@ -273,38 +279,49 @@ class EntryEditWindow(QWidget):
             return
         for index in sorted([r.row() for r in rows], reverse=True):
             self.items_table.removeRow(index)
+        self.update_total_value()
+
+    def update_total_value(self):
+        total = 0.0
+        for row in range(self.items_table.rowCount()):
+            total_item = self.items_table.item(row, 6)
+            if total_item and total_item.text():
+                try:
+                    total += float(total_item.text().replace(',', '.'))
+                except ValueError:
+                    pass  # Ignora valores que não podem ser convertidos para float
+        self.total_label.setText(f"Valor Total da Nota: R$ {total:.2f}")
 
     def on_cell_changed(self, row, column):
-        # As colunas relevantes são Quantidade (4), Valor Unit. (5), e Valor Total (6)
-        if column not in [4, 5, 6]:
+        # Quantidade(3), Valor Unit.(5), Valor Total(6)
+        if column not in [3, 5, 6]:
             return
 
         self.items_table.blockSignals(True)
         try:
-            qty_item = self.items_table.item(row, 4)
+            qty_item = self.items_table.item(row, 3)
             unit_price_item = self.items_table.item(row, 5)
             total_price_item = self.items_table.item(row, 6)
 
             qty = float(qty_item.text().replace(',', '.')) if qty_item and qty_item.text() else 0.0
             unit_price = float(unit_price_item.text().replace(',', '.')) if unit_price_item and unit_price_item.text() else 0.0
-            total_price = float(total_price_item.text().replace(',', '.')) if total_price_item and total_price_item.text() else 0.0
 
-            if column == 4 or column == 5:  # Se Quantidade ou Valor Unitário mudou
+            if column == 3 or column == 5: # Quantidade ou Valor Unitário
                 new_total = qty * unit_price
                 total_price_item.setText(f"{new_total:.2f}")
-            elif column == 6:  # Se Valor Total mudou
+            elif column == 6: # Valor Total
+                total_price = float(total_price_item.text().replace(',', '.')) if total_price_item and total_price_item.text() else 0.0
                 if qty > 0:
                     new_unit_price = total_price / qty
                     unit_price_item.setText(f"{new_unit_price:.2f}")
                 else:
-                    # Se a quantidade for 0, não é possível calcular o preço unitário.
-                    # Poderíamos zerar ou deixar como está, dependendo da regra de negócio.
-                    # Vamos zerar por segurança.
                     unit_price_item.setText("0.00")
         except (ValueError, TypeError, ZeroDivisionError) as e:
             print(f"Error in on_cell_changed: {e}")
         finally:
             self.items_table.blockSignals(False)
+
+        self.update_total_value()
 
     def set_read_only(self, read_only):
         self.date_input.setReadOnly(read_only)
@@ -324,12 +341,12 @@ class EntryEditWindow(QWidget):
 
         # Validações
         for row in range(self.items_table.rowCount()):
-            supplier_id = self.items_table.item(row, 3).data(Qt.UserRole)
+            supplier_id = self.items_table.item(row, 2).data(Qt.UserRole)
             if not supplier_id:
                 show_error_message(self, "Erro de Validação", f"O item '{self.items_table.item(row, 1).text()}' não possui um fornecedor definido.")
                 return
 
-            quantity = float(self.items_table.item(row, 4).text().replace(',', '.'))
+            quantity = float(self.items_table.item(row, 3).text().replace(',', '.'))
             if quantity <= 0:
                 show_error_message(self, "Erro de Validação", f"A quantidade do item '{self.items_table.item(row, 1).text()}' deve ser maior que zero.")
                 return
