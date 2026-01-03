@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QHeaderView, QTableWidget, QTableWidgetItem,
     QLabel, QDateEdit, QAbstractItemView, QDateTimeEdit
 )
-from PySide6.QtCore import QDate, Qt, QDateTime
+from PySide6.QtCore import QDate, Qt, QDateTime, QEvent
 from app.stock.service import StockService
 from app.supplier.service import SupplierService
 from app.item.ui_search_window import ItemSearchWindow
@@ -18,7 +18,7 @@ class SupplierDelegate(QStyledItemDelegate):
         return None
 
     def editorEvent(self, event, model, option, index):
-        if event.type() == event.MouseButtonDblClick:
+        if event.type() == QEvent.Type.MouseButtonDblClick:
             parent_window = self.parent().parent().parent()
             parent_window.open_supplier_search_for_item(index.row())
             return True
@@ -114,9 +114,16 @@ class EntryEditWindow(QWidget):
         items_group.setLayout(items_layout)
         self.main_layout.addWidget(items_group)
 
+        footer_layout = QHBoxLayout()
+        self.footer_label = QLabel("ID: (Nova)")
+        footer_layout.addWidget(self.footer_label)
+        footer_layout.addStretch()
+        self.main_layout.addLayout(footer_layout)
+
     def new_entry(self):
         self.current_entry_id = None
         self.setWindowTitle("Nova Entrada de Insumo")
+        self.footer_label.setText("ID: (Nova)")
         self.entry_id_display.setText("(Nova)")
         self.date_input.setDate(QDate.currentDate())
         self.typing_date_input.setDateTime(QDateTime.currentDateTime())
@@ -155,6 +162,7 @@ class EntryEditWindow(QWidget):
                 self.stock_service.update_entry_items(self.current_entry_id, items)
                 self.setWindowTitle(f"Editando Entrada #{self.current_entry_id}")
                 self.entry_id_display.setText(str(self.current_entry_id))
+                self.footer_label.setText(f"ID: {self.current_entry_id}")
                 QMessageBox.information(self, "Sucesso", response["message"])
             else:
                 show_error_message(self, "Error", response["message"])
@@ -169,6 +177,7 @@ class EntryEditWindow(QWidget):
         details = response["data"]
         master = details['master']
         self.entry_id_display.setText(str(master['ID']))
+        self.footer_label.setText(f"ID: {master['ID']}")
         self.date_input.setDate(QDate.fromString(master['DATA_ENTRADA'], "yyyy-MM-dd"))
         self.typing_date_input.setDateTime(QDateTime.fromString(master['DATA_DIGITACAO'], "yyyy-MM-dd HH:mm:ss"))
 
