@@ -58,10 +58,10 @@ class EntryEditWindow(QWidget):
         self.supplier_display = QLineEdit()
         self.supplier_display.setReadOnly(True)
         self.supplier_display.setPlaceholderText("Selecione um fornecedor")
-        search_supplier_button = QPushButton("Buscar")
-        search_supplier_button.clicked.connect(self.open_supplier_search)
+        self.search_supplier_button = QPushButton("Buscar")
+        self.search_supplier_button.clicked.connect(self.open_supplier_search)
         supplier_layout.addWidget(self.supplier_display)
-        supplier_layout.addWidget(search_supplier_button)
+        supplier_layout.addWidget(self.search_supplier_button)
 
         self.note_number_input = QLineEdit()
         self.observacao_input = QLineEdit()
@@ -285,10 +285,7 @@ class EntryEditWindow(QWidget):
         self.date_input.setReadOnly(read_only)
         self.typing_date_input.setReadOnly(read_only)
         self.supplier_display.setReadOnly(True) # Always read-only
-
-        supplier_layout = self.main_layout.itemAt(1).widget().layout().itemAt(3, QFormLayout.FieldRole).layout()
-        search_button = supplier_layout.itemAt(1).widget()
-        search_button.setDisabled(read_only)
+        self.search_supplier_button.setDisabled(read_only)
 
         self.note_number_input.setReadOnly(read_only)
         self.items_table.setEditTriggers(QAbstractItemView.NoEditTriggers if read_only else QAbstractItemView.AllEditTriggers)
