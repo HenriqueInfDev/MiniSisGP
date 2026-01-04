@@ -1,22 +1,21 @@
-# app/item/ui_search_window.py
+# app/ui_search_window.py
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
+    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout, QLineEdit,
     QComboBox, QPushButton, QTableView, QHeaderView, QAbstractItemView
 )
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 
-from app.item.service import ItemService
-from app.utils.ui_utils import show_error_message
+from ..services.item_service import ItemService
+from ..ui_utils import show_error_message
 
 
-class ItemSearchWindow(QWidget):
+class SearchWindow(QWidget):
     # Sinal que emitirá os dados do item selecionado
     item_selected = Signal(dict)
 
     def __init__(self, selection_mode=False, item_type_filter=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.item_service = ItemService()
         self.edit_window = None # Para manter referência da janela de edição
         self.selection_mode = selection_mode
@@ -43,7 +42,7 @@ class ItemSearchWindow(QWidget):
         search_layout = QHBoxLayout()
 
         self.search_field_combo = QComboBox()
-        self.search_field_combo.addItems(["Descrição", "Código Interno", "Tipo", "ID"])
+        self.search_field_combo.addItems(["Descrição", "ID", "Unidade", "Quantidade"])
 
         self.search_text = QLineEdit()
         self.search_text.returnPressed.connect(self.load_items) # Busca ao pressionar Enter
@@ -68,7 +67,7 @@ class ItemSearchWindow(QWidget):
 
         self.table_view = QTableView()
         self.table_model = QStandardItemModel()
-        self.table_model.setHorizontalHeaderLabels(["ID", "Código Interno", "Descrição", "Tipo", "Un.", "Quantidade", "Custo Unit."])
+        self.table_model.setHorizontalHeaderLabels(["ID", "Descrição", "Tipo", "Un.", "Quantidade", "Custo Unit."])
         self.table_view.setModel(self.table_model)
         header = self.table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -92,18 +91,18 @@ class ItemSearchWindow(QWidget):
 
         if search_content:
             search_type_map = {
-                "Descrição": "DESCRICAO",
-                "Código Interno": "CODIGO_INTERNO",
-                "Tipo": "TIPO_ITEM",
-                "ID": "ID"
+                "Descrição": "Descrição",
+                "ID": "ID",
+                "Unidade": "Unidade",
+                "Quantidade": "Quantidade"
             }
-            search_type = search_type_map.get(search_type_text, "DESCRICAO")
+            search_type = search_type_map.get(search_type_text, "Descrição")
             response = self.item_service.search_items(search_type, search_content)
         else:
             response = self.item_service.get_all_items()
 
         if not response["success"]:
-            show_error_message(self, "Error", response["message"])
+            show_error_message(self, response["message"])
             return
 
         # Aplica o filtro de tipo de item, se existir
@@ -123,7 +122,6 @@ class ItemSearchWindow(QWidget):
 
             row = [
                 id_item,
-                QStandardItem(item['CODIGO_INTERNO']),
                 QStandardItem(item['DESCRICAO']),
                 QStandardItem(item['TIPO_ITEM']),
                 QStandardItem(item['SIGLA'].upper()),
@@ -163,14 +161,20 @@ class ItemSearchWindow(QWidget):
 
     def show_edit_window(self, item_id):
         """Abre a janela de edição, garantindo que apenas uma instância exista e limpando a referência quando fechada."""
-        from .ui_form_window import ItemFormWindow
-        if self.edit_window is None:
-            self.edit_window = ItemFormWindow(item_id=item_id)
-            self.edit_window.destroyed.connect(self.on_edit_window_closed)
-            self.edit_window.show()
-        else:
+        # Se a janela já existe e está visível, apenas a traga para a frente.
+        if self.edit_window and self.edit_window.isVisible():
             self.edit_window.activateWindow()
             self.edit_window.raise_()
+            return
+
+        from .ui_edit_window import EditWindow
+        self.edit_window = EditWindow(item_id=item_id)
+
+        # Conecta o sinal 'destroyed' para limpar a referência da janela quando ela for fechada.
+        # Isso previne o crash ao tentar reabrir a janela.
+        self.edit_window.destroyed.connect(self.on_edit_window_closed)
+
+        self.edit_window.show()
 
     def on_edit_window_closed(self):
         """Slot para limpar a referência da janela de edição e recarregar os itens."""
