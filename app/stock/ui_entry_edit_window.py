@@ -342,11 +342,20 @@ class EntryEditWindow(QWidget):
         self.remove_item_button.setDisabled(read_only)
 
     def finalize_entry(self):
-        if not self.current_entry_id:
-            show_error_message(self, "Error", "Salve a nota de entrada antes de finalizá-la.")
+        # Validações
+        if not self.note_number_input.text().strip():
+            show_error_message(self, "Erro de Validação", "O campo 'Número da Nota' é obrigatório.")
             return
 
-        # Validações
+        if self.items_table.rowCount() == 0:
+            show_error_message(self, "Erro de Validação", "Adicione pelo menos um insumo à nota antes de finalizar.")
+            return
+
+        if not self.current_entry_id:
+            show_error_message(self, "Ação Necessária", "É necessário SALVAR a nota antes de finalizá-la.\n\nClique no botão 'Salvar' para que um ID seja gerado para a nota.")
+            return
+
+        # Validações dos itens
         for row in range(self.items_table.rowCount()):
             supplier_id = self.items_table.item(row, 2).data(Qt.UserRole)
             if not supplier_id:
