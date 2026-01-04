@@ -56,7 +56,11 @@ class EntryEditWindow(QWidget):
         self.reopen_button = QPushButton("Reabrir Entrada")
         self.reopen_button.clicked.connect(self.reopen_entry)
         self.reopen_button.setObjectName("reopen_button")
+        self.delete_button = QPushButton("Excluir")
+        self.delete_button.clicked.connect(self.delete_entry)
+        self.delete_button.setObjectName("delete_button")
         header_layout.addStretch()
+        header_layout.addWidget(self.delete_button)
         header_layout.addWidget(self.save_button)
         header_layout.addWidget(self.finalize_button)
         header_layout.addWidget(self.reopen_button)
@@ -346,6 +350,27 @@ class EntryEditWindow(QWidget):
         self.add_item_button.setVisible(not read_only)
         self.remove_item_button.setVisible(not read_only)
         self.reopen_button.setVisible(read_only)
+        # O botão de excluir só aparece se a nota não for nova e estiver aberta
+        self.delete_button.setVisible(not read_only and self.current_entry_id is not None)
+
+    def delete_entry(self):
+        if not self.current_entry_id:
+            return
+
+        reply = QMessageBox.question(
+            self, "Confirmar Exclusão",
+            "Você tem certeza que deseja excluir esta nota de entrada?\n\n"
+            "Esta ação não pode ser desfeita.",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            response = self.stock_service.delete_entry(self.current_entry_id)
+            if response["success"]:
+                QMessageBox.information(self, "Sucesso", response["message"])
+                self.close()  # Fecha a janela de edição após a exclusão
+            else:
+                show_error_message(self, "Erro", response["message"])
 
     def reopen_entry(self):
         if not self.current_entry_id:

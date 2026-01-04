@@ -96,6 +96,24 @@ class StockService:
         except Exception as e:
             return {"success": False, "message": f"Um erro inesperado ocorreu: {e}"}
 
+    def delete_entry(self, entry_id):
+        if not entry_id:
+            return {"success": False, "message": "ID da nota de entrada não fornecido."}
+
+        try:
+            details = self.stock_repository.get_entry_details(entry_id)
+            if not details:
+                return {"success": False, "message": "Nota de entrada não encontrada."}
+            if details['master']['STATUS'] == 'Finalizada':
+                return {"success": False, "message": "Não é possível excluir uma nota de entrada finalizada. Reabra a nota primeiro."}
+
+            if self.stock_repository.delete_entry(entry_id):
+                return {"success": True, "message": "Nota de entrada excluída com sucesso."}
+            else:
+                return {"success": False, "message": "Erro ao excluir a nota de entrada."}
+        except Exception as e:
+            return {"success": False, "message": f"Um erro inesperado ocorreu: {e}"}
+
 
     def get_item_details(self, item_id):
         try:

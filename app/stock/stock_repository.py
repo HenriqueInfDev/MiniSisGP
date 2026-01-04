@@ -172,6 +172,21 @@ class StockRepository:
             conn.rollback()
             return False
 
+    def delete_entry(self, entry_id):
+        conn = self.db_manager.get_connection()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                # Primeiro, deleta os itens da nota
+                cursor.execute("DELETE FROM ENTRADANOTA_ITENS WHERE ID_ENTRADA = ?", (entry_id,))
+                # Depois, deleta a nota principal
+                cursor.execute("DELETE FROM ENTRADANOTA WHERE ID = ?", (entry_id,))
+            return True
+        except sqlite3.Error as e:
+            print(f"Database error in delete_entry: {e}")
+            conn.rollback()
+            return False
+
     def get_item_details(self, item_id):
         conn = self.db_manager.get_connection()
         query = """
