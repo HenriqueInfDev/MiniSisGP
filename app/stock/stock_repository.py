@@ -98,7 +98,10 @@ class StockRepository:
                     params = (val, val + 1)
                 except ValueError:
                     return [] # Se não for um número válido, não retorna nada
-            else: # Para Nº Nota, Data Entrada, Status
+            elif search_field == "Data Entrada":
+                query += f" WHERE {column} = ?"
+                params = (search_term,)
+            else: # Para Nº Nota, Status
                 query += f" WHERE {column} LIKE ?"
                 params = (f'%{search_term}%',)
 

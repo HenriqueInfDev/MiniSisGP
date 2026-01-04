@@ -10,6 +10,7 @@ from app.supplier.service import SupplierService
 from app.item.ui_search_window import ItemSearchWindow
 from app.supplier.ui_search_window import SupplierSearchWindow
 from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
+from app.utils.date_utils import BR_DATE_FORMAT, BR_DATETIME_FORMAT
 from PySide6.QtWidgets import QStyledItemDelegate
 
 class SupplierDelegate(QStyledItemDelegate):
@@ -70,8 +71,10 @@ class EntryEditWindow(QWidget):
         form = QFormLayout()
         self.entry_id_display = QLabel("(Nova)")
         self.date_input = QDateEdit(calendarPopup=True)
+        self.date_input.setDisplayFormat(BR_DATE_FORMAT)
         self.date_input.setDate(QDate.currentDate())
         self.typing_date_input = QDateTimeEdit()
+        self.typing_date_input.setDisplayFormat(BR_DATETIME_FORMAT)
         self.typing_date_input.setDateTime(QDateTime.currentDateTime())
         self.typing_date_input.setCalendarPopup(True)
 
@@ -138,8 +141,9 @@ class EntryEditWindow(QWidget):
         self.set_read_only(False)
 
     def save_entry(self):
-        entry_date = self.date_input.date().toString("yyyy-MM-dd")
-        typing_date = self.typing_date_input.dateTime().toString("yyyy-MM-dd HH:mm:ss")
+        from app.utils.date_utils import parse_date_for_db, parse_datetime_for_db
+        entry_date = parse_date_for_db(self.date_input.date())
+        typing_date = parse_datetime_for_db(self.typing_date_input.dateTime())
         note_number = self.note_number_input.text()
         observacao = self.observacao_input.text()
 
@@ -186,9 +190,10 @@ class EntryEditWindow(QWidget):
 
         details = response["data"]
         master = details['master']
+        from app.utils.date_utils import db_string_to_qdate, db_string_to_qdatetime
         self.entry_id_display.setText(str(master['ID']))
-        self.date_input.setDate(QDate.fromString(master['DATA_ENTRADA'], "yyyy-MM-dd"))
-        self.typing_date_input.setDateTime(QDateTime.fromString(master['DATA_DIGITACAO'], "yyyy-MM-dd HH:mm:ss"))
+        self.date_input.setDate(db_string_to_qdate(master['DATA_ENTRADA']))
+        self.typing_date_input.setDateTime(db_string_to_qdatetime(master['DATA_DIGITACAO']))
 
         self.note_number_input.setText(master['NUMERO_NOTA'] if 'NUMERO_NOTA' in master else '')
         self.observacao_input.setText(master['OBSERVACAO'] if 'OBSERVACAO' in master else '')

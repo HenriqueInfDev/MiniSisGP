@@ -8,6 +8,7 @@ from PySide6.QtCore import QDate, Qt
 from app.sales.sale_service import SaleService
 from app.item.ui_search_window import ItemSearchWindow
 from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
+from app.utils.date_utils import BR_DATE_FORMAT, db_string_to_qdate
 
 class SaleEditWindow(QWidget):
     def __init__(self, sale_id=None):
@@ -44,6 +45,7 @@ class SaleEditWindow(QWidget):
         form = QFormLayout()
         self.sale_id_display = QLabel("(Nova)")
         self.date_input = QDateEdit(calendarPopup=True)
+        self.date_input.setDisplayFormat(BR_DATE_FORMAT)
         self.date_input.setDate(QDate.currentDate())
         self.observacao_input = QLineEdit()
         self.status_display = QLabel("Em Aberto")
@@ -97,7 +99,8 @@ class SaleEditWindow(QWidget):
         self.set_read_only(False)
 
     def save_sale(self):
-        sale_date = self.date_input.date().toString("yyyy-MM-dd")
+        from app.utils.date_utils import parse_date_for_db
+        sale_date = parse_date_for_db(self.date_input.date())
         observacao = self.observacao_input.text()
 
         items = []
@@ -132,7 +135,7 @@ class SaleEditWindow(QWidget):
         details = response["data"]
         master = details['master']
         self.sale_id_display.setText(str(master['ID']))
-        self.date_input.setDate(QDate.fromString(master['DATA_SAIDA'], "yyyy-MM-dd"))
+        self.date_input.setDate(db_string_to_qdate(master['DATA_SAIDA']))
         self.observacao_input.setText(master.get('OBSERVACAO', ''))
         self.status_display.setText(master.get('STATUS', ''))
 

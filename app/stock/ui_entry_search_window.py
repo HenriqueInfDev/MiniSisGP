@@ -1,13 +1,15 @@
 # app/stock/ui_entry_search_window.py
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
-    QComboBox, QPushButton, QTableView, QHeaderView, QAbstractItemView
+    QComboBox, QPushButton, QTableView, QHeaderView, QAbstractItemView,
+    QDateEdit, QStackedWidget
 )
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDate
 from app.stock.service import StockService
 from app.utils.ui_utils import show_error_message
 from app.stock.ui_entry_edit_window import EntryEditWindow
+from app.utils.date_utils import format_date_for_display, BR_DATE_FORMAT, parse_date_for_db
 
 class EntrySearchWindow(QWidget):
     def __init__(self):
@@ -27,17 +29,27 @@ class EntrySearchWindow(QWidget):
         search_layout = QHBoxLayout()
         self.search_field = QComboBox()
         self.search_field.addItems(["ID", "Nº Nota", "Data Entrada", "Valor Total", "Status"])
-        self.search_field.currentTextChanged.connect(self.update_search_placeholder)
-        self.search_term = QLineEdit()
-        self.search_term.returnPressed.connect(self.load_entries)
-        self.update_search_placeholder(self.search_field.currentText())
+        self.search_field.currentTextChanged.connect(self.update_search_widget)
+
+        self.search_stack = QStackedWidget()
+        self.search_term_text = QLineEdit()
+        self.search_term_text.returnPressed.connect(self.load_entries)
+        self.search_term_date = QDateEdit(calendarPopup=True)
+        self.search_term_date.setDisplayFormat(BR_DATE_FORMAT)
+        self.search_term_date.setDate(QDate.currentDate())
+
+        self.search_stack.addWidget(self.search_term_text)
+        self.search_stack.addWidget(self.search_term_date)
+
+        self.update_search_widget(self.search_field.currentText())
+
         search_button = QPushButton("Buscar")
         search_button.clicked.connect(self.load_entries)
         new_button = QPushButton("Nova Entrada")
         new_button.clicked.connect(self.open_new_entry_window)
 
         search_layout.addWidget(self.search_field)
-        search_layout.addWidget(self.search_term, 1)
+        search_layout.addWidget(self.search_stack, 1)
         search_layout.addWidget(search_button)
         search_layout.addWidget(new_button)
         search_group.setLayout(search_layout)
@@ -67,15 +79,20 @@ class EntrySearchWindow(QWidget):
 
     def load_entries(self):
         self.table_model.removeRows(0, self.table_model.rowCount())
-        search_term = self.search_term.text()
         search_field = self.search_field.currentText()
+
+        if search_field == "Data Entrada":
+            search_term = parse_date_for_db(self.search_term_date.date())
+        else:
+            search_term = self.search_term_text.text()
+
         response = self.stock_service.list_entries(search_term, search_field)
 
         if response["success"]:
             for entry in response["data"]:
                 row = [
                     QStandardItem(str(entry['ID'])),
-                    QStandardItem(entry.get('DATA_ENTRADA', '')),
+                    QStandardItem(format_date_for_display(entry.get('DATA_ENTRADA', ''))),
                     QStandardItem(entry.get('NUMERO_NOTA', '')),
                     QStandardItem(f"{entry.get('VALOR_TOTAL', 0):.2f}" if entry.get('VALOR_TOTAL') is not None else "N/A"),
                     QStandardItem(entry.get('STATUS', ''))
@@ -104,12 +121,16 @@ class EntrySearchWindow(QWidget):
         self.edit_window = None
         self.load_entries()
 
-    def update_search_placeholder(self, field):
+    def update_search_widget(self, field):
         placeholders = {
-            "Data Entrada": "Pesquisar por data (AAAA-MM-DD)...",
             "Valor Total": "Pesquisar por valor (ex: 50.25)...",
             "ID": "Pesquisar por ID...",
             "Nº Nota": "Pesquisar por número da nota...",
             "Status": "Pesquisar por status (Em Aberto, Finalizada)..."
         }
-        self.search_term.setPlaceholderText(placeholders.get(field, "Digite para pesquisar..."))
+
+        if field == "Data Entrada":
+            self.search_stack.setCurrentIndex(1)
+        else:
+            self.search_stack.setCurrentIndex(0)
+            self.search_term_text.setPlaceholderText(placeholders.get(field, "Digite para pesquisar..."))
