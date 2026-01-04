@@ -3,6 +3,7 @@ import sqlite3
 import os
 import atexit
 import platform
+import logging
 
 class DatabaseManager:
     _instance = None
@@ -32,7 +33,7 @@ class DatabaseManager:
         self.connection = sqlite3.connect(self.db_path)
         self.connection.row_factory = sqlite3.Row
         self._create_tables()
-        print(f"Banco de dados inicializado em: {self.db_path}")
+        logging.info(f"Banco de dados inicializado em: {self.db_path}")
 
 
     def get_connection(self):
@@ -44,7 +45,7 @@ class DatabaseManager:
         if self.connection:
             self.connection.close()
             self.connection = None
-            print("Conexão com o banco de dados fechada.")
+            logging.info("Conexão com o banco de dados fechada.")
 
     def _create_tables(self):
         cursor = self.connection.cursor()

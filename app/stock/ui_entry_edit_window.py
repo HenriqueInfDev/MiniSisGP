@@ -205,7 +205,7 @@ class EntryEditWindow(QWidget):
             self.search_supplier_window.raise_()
 
     def set_selected_supplier_for_item(self, supplier_data):
-        item = self.items_table.item(self.current_editing_row, 3)
+        item = self.items_table.item(self.current_editing_row, 2)
         item.setText(supplier_data['NOME_FANTASIA'] or supplier_data['RAZAO_SOCIAL'])
         item.setData(Qt.UserRole, supplier_data['ID'])
         self.search_supplier_window.close()
