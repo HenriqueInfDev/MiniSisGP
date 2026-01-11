@@ -172,6 +172,7 @@ class SaleEditWindow(QWidget):
         self.add_item_to_table(item_to_add)
 
     def add_item_to_table(self, item):
+        self.items_table.blockSignals(True)
         row = self.items_table.rowCount()
         self.items_table.insertRow(row)
         
@@ -185,6 +186,7 @@ class SaleEditWindow(QWidget):
 
         for col in [0, 1, 2]:
             self.items_table.item(row, col).setFlags(self.items_table.item(row, col).flags() & ~Qt.ItemIsEditable)
+        self.items_table.blockSignals(False)
 
     def remove_item(self):
         rows = self.items_table.selectionModel().selectedRows()
@@ -198,13 +200,16 @@ class SaleEditWindow(QWidget):
     def on_cell_changed(self, row, column):
         if column not in [3, 4, 5]:  # Quantidade, Valor Venda, Valor Total
             return
+
+        qty_item = self.items_table.item(row, 3)
+        unit_price_item = self.items_table.item(row, 4)
+        total_price_item = self.items_table.item(row, 5)
+
+        if not all([qty_item, unit_price_item, total_price_item]):
+            return
             
         self.items_table.blockSignals(True)
         try:
-            qty_item = self.items_table.item(row, 3)
-            unit_price_item = self.items_table.item(row, 4)
-            total_price_item = self.items_table.item(row, 5)
-
             qty = float(qty_item.text().replace(',', '.'))
             
             if column == 3 or column == 4:

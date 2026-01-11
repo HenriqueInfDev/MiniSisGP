@@ -314,13 +314,16 @@ class EntryEditWindow(QWidget):
         # Quantidade(3), Valor Unit.(5), Valor Total(6)
         if column not in [3, 5, 6]:
             return
+        
+        qty_item = self.items_table.item(row, 3)
+        unit_price_item = self.items_table.item(row, 5)
+        total_price_item = self.items_table.item(row, 6)
+
+        if not all([qty_item, unit_price_item, total_price_item]):
+            return
 
         self.items_table.blockSignals(True)
         try:
-            qty_item = self.items_table.item(row, 3)
-            unit_price_item = self.items_table.item(row, 5)
-            total_price_item = self.items_table.item(row, 6)
-
             qty = float(qty_item.text().replace(',', '.')) if qty_item and qty_item.text() else 0.0
             unit_price = float(unit_price_item.text().replace(',', '.')) if unit_price_item and unit_price_item.text() else 0.0
             
