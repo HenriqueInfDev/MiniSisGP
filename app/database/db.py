@@ -252,5 +252,327 @@ class DatabaseManager:
         """)
         cursor.execute(f"DROP TABLE {temp_table}")
 
+    def get_stock_entries(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                en.ID,
+                en.NUMERO_NOTA as numero,
+                f.RAZAO_SOCIAL as fornecedor,
+                en.DATA_ENTRADA as data,
+                en.VALOR_TOTAL as total
+            FROM ENTRADANOTA en
+            LEFT JOIN ENTRADANOTA_ITENS eni ON en.ID = eni.ID_ENTRADA
+            LEFT JOIN FORNECEDOR f ON eni.ID_FORNECEDOR = f.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("numero_de"):
+            where_clauses.append("en.NUMERO_NOTA >= ?")
+            params.append(filters["numero_de"])
+            
+        if filters.get("numero_ate"):
+            where_clauses.append("en.NUMERO_NOTA <= ?")
+            params.append(filters["numero_ate"])
+        
+        if filters.get("fornecedor"):
+            where_clauses.append("f.RAZAO_SOCIAL LIKE ?")
+            params.append(f'%{filters["fornecedor"]}%')
+            
+        if filters.get("data_inicial"):
+            where_clauses.append("en.DATA_ENTRADA >= ?")
+            params.append(filters["data_inicial"])
+            
+        if filters.get("data_final"):
+            where_clauses.append("en.DATA_ENTRADA <= ?")
+            params.append(filters["data_final"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        query += " GROUP BY en.ID"
+        
+        cursor.execute(query, params)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_stock_movements(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                i.DESCRICAO as item,
+                m.TIPO_MOVIMENTO as tipo_movimento,
+                m.QUANTIDADE as quantidade,
+                m.VALOR_UNITARIO as valor_unitario,
+                m.DATA_MOVIMENTO as data_movimento
+            FROM MOVIMENTO m
+            LEFT JOIN ITEM i ON m.ID_ITEM = i.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("item_de"):
+            where_clauses.append("i.DESCRICAO >= ?")
+            params.append(filters["item_de"])
+            
+        if filters.get("item_ate"):
+            where_clauses.append("i.DESCRICAO <= ?")
+            params.append(filters["item_ate"])
+            
+        if filters.get("periodo_de"):
+            where_clauses.append("m.DATA_MOVIMENTO >= ?")
+            params.append(filters["periodo_de"])
+            
+        if filters.get("periodo_ate"):
+            where_clauses.append("m.DATA_MOVIMENTO <= ?")
+            params.append(filters["periodo_ate"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        cursor.execute(query, params)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_current_stock(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = "SELECT DESCRICAO, SALDO_ESTOQUE, CUSTO_MEDIO FROM ITEM"
+        
+        cursor.execute(query)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_production_orders(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                op.ID as id,
+                i.DESCRICAO as produto,
+                op.STATUS as status,
+                op.DATA_CRIACAO as data_criacao,
+                opi.QUANTIDADE_PRODUZIR as quantidade
+            FROM ORDEMPRODUCAO op
+            LEFT JOIN ORDEMPRODUCAO_ITENS opi ON op.ID = opi.ID_ORDEM_PRODUCAO
+            LEFT JOIN ITEM i ON opi.ID_PRODUTO = i.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("id_de"):
+            where_clauses.append("op.ID >= ?")
+            params.append(filters["id_de"])
+            
+        if filters.get("id_ate"):
+            where_clauses.append("op.ID <= ?")
+            params.append(filters["id_ate"])
+        
+        if filters.get("produto_de"):
+            where_clauses.append("i.DESCRICAO >= ?")
+            params.append(filters["produto_de"])
+            
+        if filters.get("produto_ate"):
+            where_clauses.append("i.DESCRICAO <= ?")
+            params.append(filters["produto_ate"])
+            
+        if filters.get("status"):
+            where_clauses.append("op.STATUS LIKE ?")
+            params.append(f'%{filters["status"]}%')
+            
+        if filters.get("periodo_de"):
+            where_clauses.append("op.DATA_CRIACAO >= ?")
+            params.append(filters["periodo_de"])
+
+        if filters.get("periodo_ate"):
+            where_clauses.append("op.DATA_CRIACAO <= ?")
+            params.append(filters["periodo_ate"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        cursor.execute(query, params)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_production_by_line(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                lpm.NOME as linha,
+                i.DESCRICAO as produto,
+                SUM(opi.QUANTIDADE_PRODUZIR) as quantidade
+            FROM ORDEMPRODUCAO op
+            LEFT JOIN ORDEMPRODUCAO_ITENS opi ON op.ID = opi.ID_ORDEM_PRODUCAO
+            LEFT JOIN ITEM i ON opi.ID_PRODUTO = i.ID
+            LEFT JOIN LINHAPRODUCAO_MASTER lpm ON op.ID_LINHA_PRODUCAO = lpm.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("linha_de"):
+            where_clauses.append("lpm.NOME >= ?")
+            params.append(filters["linha_de"])
+            
+        if filters.get("linha_ate"):
+            where_clauses.append("lpm.NOME <= ?")
+            params.append(filters["linha_ate"])
+            
+        if filters.get("periodo_de"):
+            where_clauses.append("op.DATA_CRIACAO >= ?")
+            params.append(filters["periodo_de"])
+            
+        if filters.get("periodo_ate"):
+            where_clauses.append("op.DATA_CRIACAO <= ?")
+            params.append(filters["periodo_ate"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        query += " GROUP BY lpm.ID, i.ID"
+        
+        cursor.execute(query, params)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_product_composition(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                i_insumo.DESCRICAO as insumo,
+                c.QUANTIDADE as quantidade
+            FROM COMPOSICAO c
+            LEFT JOIN ITEM i_produto ON c.ID_PRODUTO = i_produto.ID
+            LEFT JOIN ITEM i_insumo ON c.ID_INSUMO = i_insumo.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("produto_de"):
+            where_clauses.append("i_produto.DESCRICAO >= ?")
+            params.append(filters["produto_de"])
+            
+        if filters.get("produto_ate"):
+            where_clauses.append("i_produto.DESCRICAO <= ?")
+            params.append(filters["produto_ate"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        cursor.execute(query, params)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_profit_by_product(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                i.DESCRICAO as produto,
+                i.CUSTO_MEDIO as custo_unitario,
+                si.VALOR_UNITARIO as preco_venda,
+                SUM(si.QUANTIDADE) as quantidade_vendida,
+                (si.VALOR_UNITARIO - i.CUSTO_MEDIO) as lucro_unitario,
+                SUM(si.QUANTIDADE) * (si.VALOR_UNITARIO - i.CUSTO_MEDIO) as lucro_total
+            FROM SAIDA_ITENS si
+            LEFT JOIN ITEM i ON si.ID_PRODUTO = i.ID
+            LEFT JOIN SAIDA s ON si.ID_SAIDA = s.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("produto_de"):
+            where_clauses.append("i.DESCRICAO >= ?")
+            params.append(filters["produto_de"])
+            
+        if filters.get("produto_ate"):
+            where_clauses.append("i.DESCRICAO <= ?")
+            params.append(filters["produto_ate"])
+            
+        if filters.get("periodo_de"):
+            where_clauses.append("s.DATA_SAIDA >= ?")
+            params.append(filters["periodo_de"])
+            
+        if filters.get("periodo_ate"):
+            where_clauses.append("s.DATA_SAIDA <= ?")
+            params.append(filters["periodo_ate"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        query += " GROUP BY i.ID"
+        
+        cursor.execute(query, params)
+        
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_profit_by_period(self, filters):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                SUM(s.VALOR_TOTAL) as total_vendas,
+                SUM(i.CUSTO_MEDIO * si.QUANTIDADE) as custo_total,
+                (SUM(s.VALOR_TOTAL) - SUM(i.CUSTO_MEDIO * si.QUANTIDADE)) as lucro_final
+            FROM SAIDA s
+            LEFT JOIN SAIDA_ITENS si ON s.ID = si.ID_SAIDA
+            LEFT JOIN ITEM i ON si.ID_PRODUTO = i.ID
+        """
+        
+        where_clauses = []
+        params = []
+        
+        if filters.get("data_inicial"):
+            where_clauses.append("s.DATA_SAIDA >= ?")
+            params.append(filters["data_inicial"])
+            
+        if filters.get("data_final"):
+            where_clauses.append("s.DATA_SAIDA <= ?")
+            params.append(filters["data_final"])
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        cursor.execute(query, params)
+        
+        row = cursor.fetchone()
+        if row:
+            column_names = [description[0] for description in cursor.description]
+            return dict(zip(column_names, row))
+        return {"total_vendas": 0, "custo_total": 0, "lucro_final": 0}
+
 def get_db_manager():
     return DatabaseManager()

@@ -52,6 +52,29 @@ class MainWindow(QMainWindow):
         from app.sales.ui_sale_search_window import SaleSearchWindow
         self._add_menu_action(movement_menu, "Saída de Produtos", "sale_search_window", SaleSearchWindow)
 
+        # Menu Relatórios
+        reports_menu = menu_bar.addMenu("&Relatórios")
+        
+        # Submenu Movimento
+        movement_reports_menu = reports_menu.addMenu("Movimento")
+        from app.reports.ui.stock_reports import StockReportWindow
+        self._add_menu_action(movement_reports_menu, "Entrada de Insumos", "stock_entry_report", lambda: StockReportWindow("Entrada de Insumos"))
+        self._add_menu_action(movement_reports_menu, "Movimentação de Estoque", "stock_movement_report", lambda: StockReportWindow("Movimentação de Estoque"))
+        self._add_menu_action(movement_reports_menu, "Estoque Atual", "current_stock_report", lambda: StockReportWindow("Estoque Atual"))
+
+        # Submenu Produção
+        production_reports_menu = reports_menu.addMenu("Produção")
+        from app.reports.ui.production_reports import ProductionReportWindow
+        self._add_menu_action(production_reports_menu, "Ordens de Produção", "production_orders_report", lambda: ProductionReportWindow("Ordens de Produção"))
+        self._add_menu_action(production_reports_menu, "Produção por Linha", "production_by_line_report", lambda: ProductionReportWindow("Produção por Linha"))
+        self._add_menu_action(production_reports_menu, "Composição / Estrutura de Produto", "product_composition_report", lambda: ProductionReportWindow("Composição / Estrutura de Produto"))
+
+        # Submenu Gerenciais
+        management_reports_menu = reports_menu.addMenu("Gerenciais")
+        from app.reports.ui.financial_reports import FinancialReportWindow
+        self._add_menu_action(management_reports_menu, "Lucro por Produto", "profit_by_product_report", lambda: FinancialReportWindow("Lucro por Produto"))
+        self._add_menu_action(management_reports_menu, "Lucro por Período", "profit_by_period_report", lambda: FinancialReportWindow("Lucro por Período"))
+
         # Menu Configurações
         settings_menu = menu_bar.addMenu("&Configurações")
 
