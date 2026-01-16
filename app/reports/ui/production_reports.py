@@ -58,11 +58,6 @@ class ProductionReportWindow(QWidget):
             self.filters["produto_ate"] = QLineEdit()
             self.filters_layout.addRow("Produto (de):", self.filters["produto_de"])
             self.filters_layout.addRow("Produto (até):", self.filters["produto_ate"])
-        elif self.report_type == "Consumo por Ordem de Produção":
-            self.filters["ordem_de"] = QLineEdit()
-            self.filters["ordem_ate"] = QLineEdit()
-            self.filters_layout.addRow("Ordem (de):", self.filters["ordem_de"])
-            self.filters_layout.addRow("Ordem (até):", self.filters["ordem_ate"])
 
         self.layout.addLayout(self.filters_layout)
 
@@ -80,8 +75,6 @@ class ProductionReportWindow(QWidget):
             headers, data = self.generate_product_composition_report()
         elif self.report_type == "Produção por Período":
             headers, data = self.generate_production_by_period_report()
-        elif self.report_type == "Consumo por Ordem de Produção":
-            headers, data = self.generate_consumption_by_order_report()
         else:
             headers, data = [], []
 
@@ -183,19 +176,5 @@ class ProductionReportWindow(QWidget):
         
         headers = ["Produto", "Quantidade Produzida", "Data da Produção"]
         data = [[p["produto"], p["quantidade_produzida"], p["data_producao"]] for p in production_data]
-        
-        return headers, data
-
-    def generate_consumption_by_order_report(self):
-        filters = {
-            "ordem_de": self.filters["ordem_de"].text(),
-            "ordem_ate": self.filters["ordem_ate"].text(),
-        }
-        
-        db_manager = get_db_manager()
-        consumption_data = db_manager.get_consumption_by_order_report(filters)
-        
-        headers = ["Ordem de Produção", "Insumo", "Quantidade Consumida"]
-        data = [[c["ordem_producao"], c["insumo"], c["quantidade_consumida"]] for c in consumption_data]
         
         return headers, data

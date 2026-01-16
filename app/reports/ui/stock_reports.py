@@ -18,7 +18,7 @@ class StockReportWindow(QWidget):
         self.filters_layout = QFormLayout()
         self.filters = {}
 
-        if self.report_type == "Entrada de Insumos":
+        if self.report_type == "Entradas (Compras)":
             self.filters["numero_de"] = QLineEdit()
             self.filters["numero_ate"] = QLineEdit()
             self.filters["fornecedor"] = QLineEdit()
@@ -40,13 +40,6 @@ class StockReportWindow(QWidget):
             self.filters["periodo_ate"].setCalendarPopup(True)
             self.filters_layout.addRow("Item (de):", self.filters["item_de"])
             self.filters_layout.addRow("Item (até):", self.filters["item_ate"])
-            self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
-            self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
-        elif self.report_type == "Consumo de Insumos":
-            self.filters["periodo_de"] = QDateEdit()
-            self.filters["periodo_ate"] = QDateEdit()
-            self.filters["periodo_de"].setCalendarPopup(True)
-            self.filters["periodo_ate"].setCalendarPopup(True)
             self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
             self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
         elif self.report_type == "Estoque Atual":
@@ -71,8 +64,6 @@ class StockReportWindow(QWidget):
             headers, data = self.generate_stock_movement_report()
         elif self.report_type == "Estoque Atual":
             headers, data = self.generate_current_stock_report()
-        elif self.report_type == "Consumo de Insumos":
-            headers, data = self.generate_material_consumption_report()
         elif self.report_type == "Itens da Nota de Entrada":
             headers, data = self.generate_entry_items_report()
         else:
@@ -155,20 +146,6 @@ class StockReportWindow(QWidget):
         
         headers = ["Item", "Saldo em Estoque", "Custo Médio"]
         data = [[s["DESCRICAO"], s["SALDO_ESTOQUE"], s["CUSTO_MEDIO"]] for s in stock]
-        
-        return headers, data
-
-    def generate_material_consumption_report(self):
-        filters = {
-            "periodo_de": self.filters["periodo_de"].date().toString("yyyy-MM-dd"),
-            "periodo_ate": self.filters["periodo_ate"].date().toString("yyyy-MM-dd"),
-        }
-        
-        db_manager = get_db_manager()
-        consumption_data = db_manager.get_material_consumption(filters)
-        
-        headers = ["Insumo", "Quantidade Consumida", "Ordem de Produção"]
-        data = [[c["insumo"], c["quantidade_consumida"], c["ordem_producao"]] for c in consumption_data]
         
         return headers, data
 

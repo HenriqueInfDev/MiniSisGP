@@ -302,42 +302,6 @@ class DatabaseManager:
         column_names = [description[0] for description in cursor.description]
         return [dict(zip(column_names, row)) for row in rows]
 
-    def get_consumption_by_order_report(self, filters):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        query = """
-            SELECT
-                m.ID_ORDEM_PRODUCAO as ordem_producao,
-                i.DESCRICAO as insumo,
-                SUM(m.QUANTIDADE) as quantidade_consumida
-            FROM MOVIMENTO m
-            JOIN ITEM i ON m.ID_ITEM = i.ID
-            WHERE m.TIPO_MOVIMENTO = 'Saída'
-        """
-        
-        where_clauses = []
-        params = []
-        
-        if filters.get("ordem_de"):
-            where_clauses.append("m.ID_ORDEM_PRODUCAO >= ?")
-            params.append(filters["ordem_de"])
-
-        if filters.get("ordem_ate"):
-            where_clauses.append("m.ID_ORDEM_PRODUCAO <= ?")
-            params.append(filters["ordem_ate"])
-
-        if where_clauses:
-            query += " AND " + " AND ".join(where_clauses)
-            
-        query += " GROUP BY m.ID_ORDEM_PRODUCAO, i.ID"
-        
-        cursor.execute(query, params)
-        
-        rows = cursor.fetchall()
-        column_names = [description[0] for description in cursor.description]
-        return [dict(zip(column_names, row)) for row in rows]
-
     def get_product_cost_report(self, filters):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -399,42 +363,6 @@ class DatabaseManager:
         if where_clauses:
             query += " WHERE " + " AND ".join(where_clauses)
             
-        cursor.execute(query, params)
-        
-        rows = cursor.fetchall()
-        column_names = [description[0] for description in cursor.description]
-        return [dict(zip(column_names, row)) for row in rows]
-
-    def get_material_consumption(self, filters):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        query = """
-            SELECT
-                i.DESCRICAO as insumo,
-                SUM(m.QUANTIDADE) as quantidade_consumida,
-                op.ID as ordem_producao
-            FROM MOVIMENTO m
-            JOIN ITEM i ON m.ID_ITEM = i.ID
-            JOIN ORDEMPRODUCAO op ON m.ID_ORDEM_PRODUCAO = op.ID
-            WHERE m.TIPO_MOVIMENTO = 'Saída'
-        """
-        
-        where_clauses = []
-        params = []
-        if filters.get("periodo_de"):
-            where_clauses.append("m.DATA_MOVIMENTO >= ?")
-            params.append(filters["periodo_de"])
-            
-        if filters.get("periodo_ate"):
-            where_clauses.append("m.DATA_MOVIMENTO <= ?")
-            params.append(filters["periodo_ate"])
-            
-        if where_clauses:
-            query += " AND " + " AND ".join(where_clauses)
-            
-        query += " GROUP BY i.ID, op.ID"
-        
         cursor.execute(query, params)
         
         rows = cursor.fetchall()
@@ -747,39 +675,6 @@ class DatabaseManager:
             column_names = [description[0] for description in cursor.description]
             return dict(zip(column_names, row))
         return {"total_vendas": 0, "custo_total": 0, "lucro_final": 0}
-
-    def get_summary_financial_report(self, filters):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        query = """
-            SELECT
-                SUM(CASE WHEN m.TIPO_MOVIMENTO = 'Entrada' THEN m.QUANTIDADE * m.VALOR_UNITARIO ELSE 0 END) as total_compras,
-                SUM(CASE WHEN m.TIPO_MOVIMENTO = 'Saída' THEN m.QUANTIDADE * m.VALOR_UNITARIO ELSE 0 END) as custo_producao,
-                (SELECT SUM(VALOR_TOTAL) FROM SAIDA) as total_vendas
-            FROM MOVIMENTO m
-        """
-        
-        where_clauses = []
-        params = []
-        if filters.get("periodo_de"):
-            where_clauses.append("m.DATA_MOVIMENTO >= ?")
-            params.append(filters["periodo_de"])
-            
-        if filters.get("periodo_ate"):
-            where_clauses.append("m.DATA_MOVIMENTO <= ?")
-            params.append(filters["periodo_ate"])
-
-        if where_clauses:
-            query += " WHERE " + " AND ".join(where_clauses)
-            
-        cursor.execute(query, params)
-        
-        row = cursor.fetchone()
-        if row:
-            column_names = [description[0] for description in cursor.description]
-            return dict(zip(column_names, row))
-        return {"total_compras": 0, "custo_producao": 0, "total_vendas": 0}
 
 def get_db_manager():
     return DatabaseManager()

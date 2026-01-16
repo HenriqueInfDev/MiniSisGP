@@ -12,7 +12,7 @@ def _footer_canvas(canvas, doc):
     # Watermark
     watermark_text = f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - MiniSis - Gestão de Produção"
     canvas.setFillColor(colors.lightgrey)
-    canvas.drawString(inch, 0.75 * inch, watermark_text)
+    canvas.drawRightString(letter[0] - inch, 0.75 * inch, watermark_text)
     # Page Number
     page_number_text = f"Página {doc.page}"
     canvas.drawRightString(letter[0] - inch, letter[1] - 0.75 * inch, page_number_text)

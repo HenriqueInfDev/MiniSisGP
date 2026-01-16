@@ -37,13 +37,6 @@ class FinancialReportWindow(QWidget):
             self.filters["data_final"].setCalendarPopup(True)
             self.filters_layout.addRow("Data Inicial:", self.filters["data_inicial"])
             self.filters_layout.addRow("Data Final:", self.filters["data_final"])
-        elif self.report_type == "Financeiro Resumido":
-            self.filters["periodo_de"] = QDateEdit()
-            self.filters["periodo_ate"] = QDateEdit()
-            self.filters["periodo_de"].setCalendarPopup(True)
-            self.filters["periodo_ate"].setCalendarPopup(True)
-            self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
-            self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
         elif self.report_type == "Custo do Produto":
             self.filters["produto_de"] = QLineEdit()
             self.filters["produto_ate"] = QLineEdit()
@@ -62,8 +55,6 @@ class FinancialReportWindow(QWidget):
             headers, data = self.generate_profit_by_product_report()
         elif self.report_type == "Lucro por Período":
             headers, data = self.generate_profit_by_period_report()
-        elif self.report_type == "Financeiro Resumido":
-            headers, data = self.generate_summary_financial_report()
         elif self.report_type == "Custo do Produto":
             headers, data = self.generate_product_cost_report()
         else:
@@ -133,26 +124,6 @@ class FinancialReportWindow(QWidget):
         
         return headers, data
         
-    def generate_summary_financial_report(self):
-        filters = {
-            "periodo_de": self.filters["periodo_de"].date().toString("yyyy-MM-dd"),
-            "periodo_ate": self.filters["periodo_ate"].date().toString("yyyy-MM-dd"),
-        }
-        
-        db_manager = get_db_manager()
-        report_data = db_manager.get_summary_financial_report(filters)
-        
-        headers = ["Total de Compras", "Custo de Produção", "Total de Vendas"]
-        data = []
-        if report_data and report_data["total_compras"] is not None:
-            data.append([
-                report_data["total_compras"],
-                report_data["custo_producao"],
-                report_data["total_vendas"],
-            ])
-        
-        return headers, data
-
     def generate_product_cost_report(self):
         filters = {
             "produto_de": self.filters["produto_de"].text(),

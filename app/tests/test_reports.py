@@ -105,26 +105,6 @@ class TestReportGeneration(unittest.TestCase):
 
         mock_workbook.assert_called_once()
 
-    @patch('app.reports.ui.financial_reports.get_db_manager')
-    def test_summary_financial_report_data(self, mock_get_db_manager):
-        with patch.object(FinancialReportWindow, '__init__', lambda s, r: None):
-            mock_db_instance = MagicMock()
-            mock_get_db_manager.return_value = mock_db_instance
-            mock_db_instance.get_summary_financial_report.return_value = {
-                "total_compras": 1000, "custo_producao": 500, "total_vendas": 2000
-            }
-
-            window = FinancialReportWindow("Financeiro Resumido")
-            window.report_type = "Financeiro Resumido"
-            window.filters = {
-                "periodo_de": self._create_mock_date_edit(), "periodo_ate": self._create_mock_date_edit()
-            }
-            headers, data = window.generate_summary_financial_report()
-
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0][0], 1000)
-            self.assertEqual(len(headers), 3)
-
     @patch('app.reports.ui.production_reports.get_db_manager')
     def test_production_by_period_report_data(self, mock_get_db_manager):
         with patch.object(ProductionReportWindow, '__init__', lambda s, r: None):
@@ -143,26 +123,6 @@ class TestReportGeneration(unittest.TestCase):
 
             self.assertEqual(len(data), 1)
             self.assertEqual(data[0][0], "Test Product")
-            self.assertEqual(len(headers), 3)
-
-    @patch('app.reports.ui.stock_reports.get_db_manager')
-    def test_material_consumption_report_data(self, mock_get_db_manager):
-        with patch.object(StockReportWindow, '__init__', lambda s, r: None):
-            mock_db_instance = MagicMock()
-            mock_get_db_manager.return_value = mock_db_instance
-            mock_db_instance.get_material_consumption.return_value = [
-                {"insumo": "Test Material", "quantidade_consumida": 50, "ordem_producao": 1}
-            ]
-
-            window = StockReportWindow("Consumo de Insumos")
-            window.report_type = "Consumo de Insumos"
-            window.filters = {
-                "periodo_de": self._create_mock_date_edit(), "periodo_ate": self._create_mock_date_edit()
-            }
-            headers, data = window.generate_material_consumption_report()
-
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0][0], "Test Material")
             self.assertEqual(len(headers), 3)
 
     @patch('app.reports.ui.stock_reports.get_db_manager')
@@ -204,26 +164,6 @@ class TestReportGeneration(unittest.TestCase):
             self.assertEqual(len(data), 1)
             self.assertEqual(data[0][0], "Test Product")
             self.assertEqual(len(headers), 2)
-
-    @patch('app.reports.ui.production_reports.get_db_manager')
-    def test_consumption_by_order_report_data(self, mock_get_db_manager):
-        with patch.object(ProductionReportWindow, '__init__', lambda s, r: None):
-            mock_db_instance = MagicMock()
-            mock_get_db_manager.return_value = mock_db_instance
-            mock_db_instance.get_consumption_by_order_report.return_value = [
-                {"ordem_producao": 1, "insumo": "Test Material", "quantidade_consumida": 50}
-            ]
-
-            window = ProductionReportWindow("Consumo por Ordem de Produção")
-            window.report_type = "Consumo por Ordem de Produção"
-            window.filters = {
-                "ordem_de": self._create_mock_line_edit(), "ordem_ate": self._create_mock_line_edit()
-            }
-            headers, data = window.generate_consumption_by_order_report()
-
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0][1], "Test Material")
-            self.assertEqual(len(headers), 3)
 
 if __name__ == '__main__':
     unittest.main()
