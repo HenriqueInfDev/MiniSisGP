@@ -1,5 +1,5 @@
 # app/utils/ui_utils.py
-from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
+from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QFileDialog
 from PySide6.QtCore import Qt
 
 def show_error_message(parent, title, message):
@@ -17,3 +17,11 @@ class NumericTableWidgetItem(QTableWidgetItem):
             return float(self.text()) < float(other.text())
         except (ValueError, TypeError):
             return super().__lt__(other)
+
+def get_save_filename(parent, caption, filter):
+    """
+    Abre um diálogo para salvar arquivo.
+    Retorna o caminho do arquivo selecionado e o filtro de tipo de arquivo.
+    """
+    filename, selected_filter = QFileDialog.getSaveFileName(parent, caption, filter=filter)
+    return filename, selected_filter

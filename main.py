@@ -55,25 +55,27 @@ class MainWindow(QMainWindow):
         # Menu Relatórios
         reports_menu = menu_bar.addMenu("&Relatórios")
         
-        # Submenu Movimento
-        movement_reports_menu = reports_menu.addMenu("Movimento")
+        # Submenu Estoque
+        stock_reports_menu = reports_menu.addMenu("Estoque")
         from app.reports.ui.stock_reports import StockReportWindow
-        self._add_menu_action(movement_reports_menu, "Entrada de Insumos", "stock_entry_report", lambda: StockReportWindow("Entrada de Insumos"))
-        self._add_menu_action(movement_reports_menu, "Movimentação de Estoque", "stock_movement_report", lambda: StockReportWindow("Movimentação de Estoque"))
-        self._add_menu_action(movement_reports_menu, "Estoque Atual", "current_stock_report", lambda: StockReportWindow("Estoque Atual"))
+        self._add_menu_action(stock_reports_menu, "Entradas (Compras)", "stock_entry_report", lambda: StockReportWindow("Entradas (Compras)"))
+        self._add_menu_action(stock_reports_menu, "Itens da Nota de Entrada", "entry_items_report", lambda: StockReportWindow("Itens da Nota de Entrada"))
+        self._add_menu_action(stock_reports_menu, "Estoque Atual", "current_stock_report", lambda: StockReportWindow("Estoque Atual"))
+        self._add_menu_action(stock_reports_menu, "Consumo de Insumos", "material_consumption_report", lambda: StockReportWindow("Consumo de Insumos"))
 
         # Submenu Produção
         production_reports_menu = reports_menu.addMenu("Produção")
         from app.reports.ui.production_reports import ProductionReportWindow
         self._add_menu_action(production_reports_menu, "Ordens de Produção", "production_orders_report", lambda: ProductionReportWindow("Ordens de Produção"))
+        self._add_menu_action(production_reports_menu, "Produção por Período", "production_by_period_report", lambda: ProductionReportWindow("Produção por Período"))
         self._add_menu_action(production_reports_menu, "Produção por Linha", "production_by_line_report", lambda: ProductionReportWindow("Produção por Linha"))
-        self._add_menu_action(production_reports_menu, "Composição / Estrutura de Produto", "product_composition_report", lambda: ProductionReportWindow("Composição / Estrutura de Produto"))
+        self._add_menu_action(production_reports_menu, "Consumo por Ordem de Produção", "consumption_by_order_report", lambda: ProductionReportWindow("Consumo por Ordem de Produção"))
 
-        # Submenu Gerenciais
-        management_reports_menu = reports_menu.addMenu("Gerenciais")
+        # Submenu Financeiro
+        financial_reports_menu = reports_menu.addMenu("Financeiro")
         from app.reports.ui.financial_reports import FinancialReportWindow
-        self._add_menu_action(management_reports_menu, "Lucro por Produto", "profit_by_product_report", lambda: FinancialReportWindow("Lucro por Produto"))
-        self._add_menu_action(management_reports_menu, "Lucro por Período", "profit_by_period_report", lambda: FinancialReportWindow("Lucro por Período"))
+        self._add_menu_action(financial_reports_menu, "Custo do Produto", "product_cost_report", lambda: FinancialReportWindow("Custo do Produto"))
+        self._add_menu_action(financial_reports_menu, "Financeiro Resumido", "summary_financial_report", lambda: FinancialReportWindow("Financeiro Resumido"))
 
         # Menu Configurações
         settings_menu = menu_bar.addMenu("&Configurações")
@@ -91,6 +93,7 @@ class MainWindow(QMainWindow):
     def _open_window(self, window_name, window_class):
         if window_name not in self.windows or self.windows[window_name] is None:
             instance = window_class()
+            instance.setAttribute(Qt.WA_DeleteOnClose)
             self.windows[window_name] = instance
             instance.destroyed.connect(lambda: self.windows.pop(window_name, None))
             instance.show()

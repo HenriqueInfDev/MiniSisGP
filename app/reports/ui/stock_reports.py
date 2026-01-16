@@ -1,7 +1,9 @@
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QDateEdit
 from PySide6.QtCore import Qt
 from app.database.db import get_db_manager
+from app.reports.export import export_to_pdf, export_to_excel
+from app.utils.ui_utils import get_save_filename, show_success_message
 
 class StockReportWindow(QWidget):
     def __init__(self, report_type):
@@ -10,7 +12,6 @@ class StockReportWindow(QWidget):
         self.setWindowTitle(f"Relatório de {report_type}")
         self.layout = QVBoxLayout(self)
         self.setup_filters()
-        self.setup_table()
         self.setup_buttons()
 
     def setup_filters(self):
@@ -21,8 +22,10 @@ class StockReportWindow(QWidget):
             self.filters["numero_de"] = QLineEdit()
             self.filters["numero_ate"] = QLineEdit()
             self.filters["fornecedor"] = QLineEdit()
-            self.filters["data_inicial"] = QLineEdit()
-            self.filters["data_final"] = QLineEdit()
+            self.filters["data_inicial"] = QDateEdit()
+            self.filters["data_final"] = QDateEdit()
+            self.filters["data_inicial"].setCalendarPopup(True)
+            self.filters["data_final"].setCalendarPopup(True)
             self.filters_layout.addRow("Número (de):", self.filters["numero_de"])
             self.filters_layout.addRow("Número (até):", self.filters["numero_ate"])
             self.filters_layout.addRow("Fornecedor:", self.filters["fornecedor"])
@@ -31,163 +34,154 @@ class StockReportWindow(QWidget):
         elif self.report_type == "Movimentação de Estoque":
             self.filters["item_de"] = QLineEdit()
             self.filters["item_ate"] = QLineEdit()
-            self.filters["periodo_de"] = QLineEdit()
-            self.filters["periodo_ate"] = QLineEdit()
+            self.filters["periodo_de"] = QDateEdit()
+            self.filters["periodo_ate"] = QDateEdit()
+            self.filters["periodo_de"].setCalendarPopup(True)
+            self.filters["periodo_ate"].setCalendarPopup(True)
             self.filters_layout.addRow("Item (de):", self.filters["item_de"])
             self.filters_layout.addRow("Item (até):", self.filters["item_ate"])
             self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
             self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
+        elif self.report_type == "Consumo de Insumos":
+            self.filters["periodo_de"] = QDateEdit()
+            self.filters["periodo_ate"] = QDateEdit()
+            self.filters["periodo_de"].setCalendarPopup(True)
+            self.filters["periodo_ate"].setCalendarPopup(True)
+            self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
+            self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
         elif self.report_type == "Estoque Atual":
             pass # No filters for this report
+        elif self.report_type == "Itens da Nota de Entrada":
+            self.filters["nota_de"] = QLineEdit()
+            self.filters["nota_ate"] = QLineEdit()
+            self.filters_layout.addRow("Nota (de):", self.filters["nota_de"])
+            self.filters_layout.addRow("Nota (até):", self.filters["nota_ate"])
 
         self.layout.addLayout(self.filters_layout)
-
-    def setup_table(self):
-        self.table = QTableWidget()
-        self.layout.addWidget(self.table)
 
     def setup_buttons(self):
         self.generate_button = QPushButton("Gerar Relatório")
         self.generate_button.clicked.connect(self.generate_report)
         self.layout.addWidget(self.generate_button)
 
-        pass
-
     def generate_report(self):
-        if self.report_type == "Entrada de Insumos":
-            self.generate_input_supplies_report()
+        if self.report_type == "Entradas (Compras)":
+            headers, data = self.generate_input_supplies_report()
         elif self.report_type == "Movimentação de Estoque":
-            self.generate_stock_movement_report()
+            headers, data = self.generate_stock_movement_report()
         elif self.report_type == "Estoque Atual":
-            self.generate_current_stock_report()
-        
-        self.prompt_export()
+            headers, data = self.generate_current_stock_report()
+        elif self.report_type == "Consumo de Insumos":
+            headers, data = self.generate_material_consumption_report()
+        elif self.report_type == "Itens da Nota de Entrada":
+            headers, data = self.generate_entry_items_report()
+        else:
+            headers, data = [], []
 
-    def prompt_export(self):
-        from PySide6.QtWidgets import QDialog, QVBoxLayout, QPushButton
-        
+        if data:
+            self.show_preview(headers, data)
+        else:
+            show_success_message(self, "Relatório", "Nenhum dado encontrado para os filtros selecionados.")
+
+    def show_preview(self, headers, data):
         dialog = QDialog(self)
-        dialog.setWindowTitle("Exportar Relatório")
+        dialog.setWindowTitle("Pré-visualização do Relatório")
+        dialog.setMinimumSize(800, 600)
         layout = QVBoxLayout(dialog)
         
-        pdf_button = QPushButton("Exportar para PDF")
-        pdf_button.clicked.connect(lambda: self.export_and_open("pdf"))
-        layout.addWidget(pdf_button)
+        table = QTableWidget()
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        table.setRowCount(len(data))
         
-        excel_button = QPushButton("Exportar para Excel")
-        excel_button.clicked.connect(lambda: self.export_and_open("excel"))
-        layout.addWidget(excel_button)
+        for i, row in enumerate(data):
+            for j, item in enumerate(row):
+                table.setItem(i, j, QTableWidgetItem(str(item)))
+        
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        layout.addWidget(table)
+        
+        save_button = QPushButton("Salvar")
+        save_button.clicked.connect(lambda: self.save_report(headers, data))
+        layout.addWidget(save_button)
         
         dialog.exec()
 
-    def export_and_open(self, file_format):
-        from app.reports.export import export_to_pdf, export_to_excel
-        import os
+    def save_report(self, headers, data):
+        filename, selected_filter = get_save_filename(self, "Salvar Relatório", "PDF (*.pdf);;Excel (*.xlsx)")
         
-        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
-        data = []
-        for row in range(self.table.rowCount()):
-            data.append([self.table.item(row, col).text() for col in range(self.table.columnCount())])
-            
-        if file_format == "pdf":
-            filename = "relatorio.pdf"
-            export_to_pdf(filename, data, headers)
-        else:
-            filename = "relatorio.xlsx"
-            export_to_excel(filename, data, headers)
-            
-        self.open_file(filename)
-
-    def open_file(self, filename):
-        import subprocess
-        import sys
-        
-        if sys.platform == "win32":
-            os.startfile(filename)
-        elif sys.platform == "darwin":
-            subprocess.Popen(["open", filename])
-        else:
-            subprocess.Popen(["xdg-open", filename])
+        if filename:
+            if "pdf" in selected_filter:
+                export_to_pdf(filename, data, headers)
+            elif "xlsx" in selected_filter:
+                export_to_excel(filename, data, headers)
 
     def generate_input_supplies_report(self):
         filters = {
             "numero_de": self.filters["numero_de"].text(),
             "numero_ate": self.filters["numero_ate"].text(),
             "fornecedor": self.filters["fornecedor"].text(),
-            "data_inicial": self.filters["data_inicial"].text(),
-            "data_final": self.filters["data_final"].text(),
+            "data_inicial": self.filters["data_inicial"].date().toString("yyyy-MM-dd"),
+            "data_final": self.filters["data_final"].date().toString("yyyy-MM-dd"),
         }
         
         db_manager = get_db_manager()
         entries = db_manager.get_stock_entries(filters)
         
-        self.table.setRowCount(len(entries))
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Número", "Fornecedor", "Data", "Total"])
+        headers = ["Número", "Fornecedor", "Data", "Total"]
+        data = [[e["numero"], e["fornecedor"], e["data"], e["total"]] for e in entries]
         
-        for row, entry in enumerate(entries):
-            self.table.setItem(row, 0, QTableWidgetItem(str(entry["numero"])))
-            self.table.setItem(row, 1, QTableWidgetItem(entry["fornecedor"]))
-            self.table.setItem(row, 2, QTableWidgetItem(entry["data"]))
-            self.table.setItem(row, 3, QTableWidgetItem(str(entry["total"])))
-            
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return headers, data
 
     def generate_stock_movement_report(self):
         filters = {
             "item_de": self.filters["item_de"].text(),
             "item_ate": self.filters["item_ate"].text(),
-            "periodo_de": self.filters["periodo_de"].text(),
-            "periodo_ate": self.filters["periodo_ate"].text(),
+            "periodo_de": self.filters["periodo_de"].date().toString("yyyy-MM-dd"),
+            "periodo_ate": self.filters["periodo_ate"].date().toString("yyyy-MM-dd"),
         }
         
         db_manager = get_db_manager()
         movements = db_manager.get_stock_movements(filters)
         
-        self.table.setRowCount(len(movements))
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Item", "Tipo de Movimento", "Quantidade", "Valor Unitário", "Data"])
+        headers = ["Item", "Tipo de Movimento", "Quantidade", "Valor Unitário", "Data"]
+        data = [[m["item"], m["tipo_movimento"], m["quantidade"], m["valor_unitario"], m["data_movimento"]] for m in movements]
         
-        for row, movement in enumerate(movements):
-            self.table.setItem(row, 0, QTableWidgetItem(movement["item"]))
-            self.table.setItem(row, 1, QTableWidgetItem(movement["tipo_movimento"]))
-            self.table.setItem(row, 2, QTableWidgetItem(str(movement["quantidade"])))
-            self.table.setItem(row, 3, QTableWidgetItem(str(movement["valor_unitario"])))
-            self.table.setItem(row, 4, QTableWidgetItem(movement["data_movimento"]))
-            
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return headers, data
 
     def generate_current_stock_report(self):
         db_manager = get_db_manager()
         stock = db_manager.get_current_stock()
         
-        self.table.setRowCount(len(stock))
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Item", "Saldo em Estoque", "Custo Médio"])
+        headers = ["Item", "Saldo em Estoque", "Custo Médio"]
+        data = [[s["DESCRICAO"], s["SALDO_ESTOQUE"], s["CUSTO_MEDIO"]] for s in stock]
         
-        for row, item in enumerate(stock):
-            self.table.setItem(row, 0, QTableWidgetItem(item["descricao"]))
-            self.table.setItem(row, 1, QTableWidgetItem(str(item["saldo_estoque"])))
-            self.table.setItem(row, 2, QTableWidgetItem(str(item["custo_medio"])))
-            
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return headers, data
 
-    def export_to_pdf(self):
-        from app.reports.export import export_to_pdf
+    def generate_material_consumption_report(self):
+        filters = {
+            "periodo_de": self.filters["periodo_de"].date().toString("yyyy-MM-dd"),
+            "periodo_ate": self.filters["periodo_ate"].date().toString("yyyy-MM-dd"),
+        }
         
-        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
-        data = []
-        for row in range(self.table.rowCount()):
-            data.append([self.table.item(row, col).text() for col in range(self.table.columnCount())])
-            
-        export_to_pdf("relatorio_estoque.pdf", data, headers)
+        db_manager = get_db_manager()
+        consumption_data = db_manager.get_material_consumption(filters)
+        
+        headers = ["Insumo", "Quantidade Consumida", "Ordem de Produção"]
+        data = [[c["insumo"], c["quantidade_consumida"], c["ordem_producao"]] for c in consumption_data]
+        
+        return headers, data
 
-    def export_to_excel(self):
-        from app.reports.export import export_to_excel
+    def generate_entry_items_report(self):
+        filters = {
+            "nota_de": self.filters["nota_de"].text(),
+            "nota_ate": self.filters["nota_ate"].text(),
+        }
         
-        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
-        data = []
-        for row in range(self.table.rowCount()):
-            data.append([self.table.item(row, col).text() for col in range(self.table.columnCount())])
-            
-        export_to_excel("relatorio_estoque.xlsx", data, headers)
+        db_manager = get_db_manager()
+        entry_items_data = db_manager.get_entry_items_report(filters)
+        
+        headers = ["Nota", "Insumo", "Quantidade", "Valor Unitário", "Valor Total"]
+        data = [[i["nota"], i["insumo"], i["quantidade"], i["valor_unitario"], i["valor_total"]] for i in entry_items_data]
+        
+        return headers, data

@@ -1,7 +1,10 @@
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QDateEdit
 from PySide6.QtCore import Qt
 from app.database.db import get_db_manager
+from app.reports.export import export_to_pdf, export_to_excel
+from app.utils.ui_utils import get_save_filename, show_success_message
+import os
 
 class FinancialReportWindow(QWidget):
     def __init__(self, report_type):
@@ -10,7 +13,6 @@ class FinancialReportWindow(QWidget):
         self.setWindowTitle(f"Relatório de {report_type}")
         self.layout = QVBoxLayout(self)
         self.setup_filters()
-        self.setup_table()
         self.setup_buttons()
 
     def setup_filters(self):
@@ -20,145 +22,167 @@ class FinancialReportWindow(QWidget):
         if self.report_type == "Lucro por Produto":
             self.filters["produto_de"] = QLineEdit()
             self.filters["produto_ate"] = QLineEdit()
-            self.filters["periodo_de"] = QLineEdit()
-            self.filters["periodo_ate"] = QLineEdit()
+            self.filters["periodo_de"] = QDateEdit()
+            self.filters["periodo_ate"] = QDateEdit()
+            self.filters["periodo_de"].setCalendarPopup(True)
+            self.filters["periodo_ate"].setCalendarPopup(True)
             self.filters_layout.addRow("Produto (de):", self.filters["produto_de"])
             self.filters_layout.addRow("Produto (até):", self.filters["produto_ate"])
             self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
             self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
         elif self.report_type == "Lucro por Período":
-            self.filters["data_inicial"] = QLineEdit()
-            self.filters["data_final"] = QLineEdit()
+            self.filters["data_inicial"] = QDateEdit()
+            self.filters["data_final"] = QDateEdit()
+            self.filters["data_inicial"].setCalendarPopup(True)
+            self.filters["data_final"].setCalendarPopup(True)
             self.filters_layout.addRow("Data Inicial:", self.filters["data_inicial"])
             self.filters_layout.addRow("Data Final:", self.filters["data_final"])
+        elif self.report_type == "Financeiro Resumido":
+            self.filters["periodo_de"] = QDateEdit()
+            self.filters["periodo_ate"] = QDateEdit()
+            self.filters["periodo_de"].setCalendarPopup(True)
+            self.filters["periodo_ate"].setCalendarPopup(True)
+            self.filters_layout.addRow("Período (de):", self.filters["periodo_de"])
+            self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
+        elif self.report_type == "Custo do Produto":
+            self.filters["produto_de"] = QLineEdit()
+            self.filters["produto_ate"] = QLineEdit()
+            self.filters_layout.addRow("Produto (de):", self.filters["produto_de"])
+            self.filters_layout.addRow("Produto (até):", self.filters["produto_ate"])
 
         self.layout.addLayout(self.filters_layout)
-
-    def setup_table(self):
-        self.table = QTableWidget()
-        self.layout.addWidget(self.table)
 
     def setup_buttons(self):
         self.generate_button = QPushButton("Gerar Relatório")
         self.generate_button.clicked.connect(self.generate_report)
         self.layout.addWidget(self.generate_button)
 
-        pass
-
     def generate_report(self):
         if self.report_type == "Lucro por Produto":
-            self.generate_profit_by_product_report()
+            headers, data = self.generate_profit_by_product_report()
         elif self.report_type == "Lucro por Período":
-            self.generate_profit_by_period_report()
-            
-        self.prompt_export()
+            headers, data = self.generate_profit_by_period_report()
+        elif self.report_type == "Financeiro Resumido":
+            headers, data = self.generate_summary_financial_report()
+        elif self.report_type == "Custo do Produto":
+            headers, data = self.generate_product_cost_report()
+        else:
+            headers, data = [], []
 
-    def prompt_export(self):
-        from PySide6.QtWidgets import QDialog, QVBoxLayout, QPushButton
-        
+        if data:
+            self.show_preview(headers, data)
+        else:
+            show_success_message(self, "Relatório", "Nenhum dado encontrado para os filtros selecionados.")
+
+    def show_preview(self, headers, data):
         dialog = QDialog(self)
-        dialog.setWindowTitle("Exportar Relatório")
+        dialog.setWindowTitle("Pré-visualização do Relatório")
+        dialog.setMinimumSize(800, 600)
         layout = QVBoxLayout(dialog)
         
-        pdf_button = QPushButton("Exportar para PDF")
-        pdf_button.clicked.connect(lambda: self.export_and_open("pdf"))
-        layout.addWidget(pdf_button)
+        table = QTableWidget()
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        table.setRowCount(len(data))
         
-        excel_button = QPushButton("Exportar para Excel")
-        excel_button.clicked.connect(lambda: self.export_and_open("excel"))
-        layout.addWidget(excel_button)
+        for i, row in enumerate(data):
+            for j, item in enumerate(row):
+                table.setItem(i, j, QTableWidgetItem(str(item)))
+        
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        layout.addWidget(table)
+        
+        save_button = QPushButton("Salvar")
+        save_button.clicked.connect(lambda: self.save_report(headers, data))
+        layout.addWidget(save_button)
         
         dialog.exec()
 
-    def export_and_open(self, file_format):
-        from app.reports.export import export_to_pdf, export_to_excel
-        import os
+    def save_report(self, headers, data):
+        filename, selected_filter = get_save_filename(self, "Salvar Relatório", "PDF (*.pdf);;Excel (*.xlsx)")
         
-        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
-        data = []
-        for row in range(self.table.rowCount()):
-            data.append([self.table.item(row, col).text() for col in range(self.table.columnCount())])
-            
-        if file_format == "pdf":
-            filename = "relatorio.pdf"
-            export_to_pdf(filename, data, headers)
-        else:
-            filename = "relatorio.xlsx"
-            export_to_excel(filename, data, headers)
-            
-        self.open_file(filename)
-
-    def open_file(self, filename):
-        import subprocess
-        import sys
-        
-        if sys.platform == "win32":
-            os.startfile(filename)
-        elif sys.platform == "darwin":
-            subprocess.Popen(["open", filename])
-        else:
-            subprocess.Popen(["xdg-open", filename])
+        if filename:
+            if "pdf" in selected_filter:
+                export_to_pdf(filename, data, headers)
+            elif "xlsx" in selected_filter:
+                export_to_excel(filename, data, headers)
 
     def generate_profit_by_product_report(self):
         filters = {
             "produto_de": self.filters["produto_de"].text(),
             "produto_ate": self.filters["produto_ate"].text(),
-            "periodo_de": self.filters["periodo_de"].text(),
-            "periodo_ate": self.filters["periodo_ate"].text(),
+            "periodo_de": self.filters["periodo_de"].date().toString("yyyy-MM-dd"),
+            "periodo_ate": self.filters["periodo_ate"].date().toString("yyyy-MM-dd"),
         }
         
         db_manager = get_db_manager()
         profit_data = db_manager.get_profit_by_product(filters)
         
-        self.table.setRowCount(len(profit_data))
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["Produto", "Custo Unitário", "Preço de Venda", "Quantidade Vendida", "Lucro Unitário", "Lucro Total"])
+        headers = ["Produto", "Custo Unitário", "Preço de Venda", "Quantidade Vendida", "Lucro Unitário", "Lucro Total"]
+        data = [
+            [
+                d["produto"],
+                d["custo_unitario"],
+                d["preco_venda"],
+                d["quantidade_vendida"],
+                d["lucro_unitario"],
+                d["lucro_total"],
+            ]
+            for d in profit_data
+        ]
         
-        for row, data in enumerate(profit_data):
-            self.table.setItem(row, 0, QTableWidgetItem(data["produto"]))
-            self.table.setItem(row, 1, QTableWidgetItem(str(data["custo_unitario"])))
-            self.table.setItem(row, 2, QTableWidgetItem(str(data["preco_venda"])))
-            self.table.setItem(row, 3, QTableWidgetItem(str(data["quantidade_vendida"])))
-            self.table.setItem(row, 4, QTableWidgetItem(str(data["lucro_unitario"])))
-            self.table.setItem(row, 5, QTableWidgetItem(str(data["lucro_total"])))
-            
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return headers, data
         
+    def generate_summary_financial_report(self):
+        filters = {
+            "periodo_de": self.filters["periodo_de"].date().toString("yyyy-MM-dd"),
+            "periodo_ate": self.filters["periodo_ate"].date().toString("yyyy-MM-dd"),
+        }
+        
+        db_manager = get_db_manager()
+        report_data = db_manager.get_summary_financial_report(filters)
+        
+        headers = ["Total de Compras", "Custo de Produção", "Total de Vendas"]
+        data = []
+        if report_data and report_data["total_compras"] is not None:
+            data.append([
+                report_data["total_compras"],
+                report_data["custo_producao"],
+                report_data["total_vendas"],
+            ])
+        
+        return headers, data
+
+    def generate_product_cost_report(self):
+        filters = {
+            "produto_de": self.filters["produto_de"].text(),
+            "produto_ate": self.filters["produto_ate"].text(),
+        }
+        
+        db_manager = get_db_manager()
+        cost_data = db_manager.get_product_cost_report(filters)
+        
+        headers = ["Produto", "Custo Médio"]
+        data = [[c["produto"], c["custo_medio"]] for c in cost_data]
+        
+        return headers, data
+
     def generate_profit_by_period_report(self):
         filters = {
-            "data_inicial": self.filters["data_inicial"].text(),
-            "data_final": self.filters["data_final"].text(),
+            "data_inicial": self.filters["data_inicial"].date().toString("yyyy-MM-dd"),
+            "data_final": self.filters["data_final"].date().toString("yyyy-MM-dd"),
         }
         
         db_manager = get_db_manager()
         profit_data = db_manager.get_profit_by_period(filters)
         
-        self.table.setRowCount(1)
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Total de Vendas", "Custo Total", "Lucro Final"])
-        
-        self.table.setItem(0, 0, QTableWidgetItem(str(profit_data["total_vendas"])))
-        self.table.setItem(0, 1, QTableWidgetItem(str(profit_data["custo_total"])))
-        self.table.setItem(0, 2, QTableWidgetItem(str(profit_data["lucro_final"])))
-        
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-    def export_to_pdf(self):
-        from app.reports.export import export_to_pdf
-        
-        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
+        headers = ["Total de Vendas", "Custo Total", "Lucro Final"]
         data = []
-        for row in range(self.table.rowCount()):
-            data.append([self.table.item(row, col).text() for col in range(self.table.columnCount())])
-            
-        export_to_pdf("relatorio_financeiro.pdf", data, headers)
-
-    def export_to_excel(self):
-        from app.reports.export import export_to_excel
+        if profit_data and profit_data["total_vendas"] is not None:
+            data.append([
+                profit_data["total_vendas"],
+                profit_data["custo_total"],
+                profit_data["lucro_final"],
+            ])
         
-        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
-        data = []
-        for row in range(self.table.rowCount()):
-            data.append([self.table.item(row, col).text() for col in range(self.table.columnCount())])
-            
-        export_to_excel("relatorio_financeiro.xlsx", data, headers)
+        return headers, data
