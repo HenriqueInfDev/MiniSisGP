@@ -9,6 +9,10 @@ from app.item.service import ItemService
 from app.production import composition_operations
 from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE, RED, GRAY, YELLOW
+)
+
 class ItemFormWindow(QWidget):
     def __init__(self, item_id=None):
         super().__init__()
@@ -92,15 +96,19 @@ class ItemFormWindow(QWidget):
         header_layout = QHBoxLayout()
         
         new_button = QPushButton("Novo")
+        new_button.setStyleSheet(button_style(GREEN))
         new_button.clicked.connect(self.new_item)
         
         save_button = QPushButton("Salvar")
+        save_button.setStyleSheet(button_style(GREEN))
         save_button.clicked.connect(self.save_item)
 
         delete_button = QPushButton("Excluir")
+        delete_button.setStyleSheet(button_style(RED))
         delete_button.clicked.connect(self.delete_item)
         
         close_button = QPushButton("Fechar")
+        close_button.setStyleSheet(button_style(GRAY))
         close_button.clicked.connect(self.close)
 
         header_layout.addStretch()
@@ -127,7 +135,9 @@ class ItemFormWindow(QWidget):
         self.supplier_display.setReadOnly(True)
         self.supplier_display.setPlaceholderText("Selecione um fornecedor")
         self.search_supplier_button = QPushButton("Buscar")
+        self.search_supplier_button.setStyleSheet(button_style(BLUE))
         self.clear_supplier_button = QPushButton("Limpar") # Novo botão
+        self.clear_supplier_button.setStyleSheet(button_style(RED))
         supplier_layout.addWidget(self.supplier_display)
         supplier_layout.addWidget(self.search_supplier_button)
         supplier_layout.addWidget(self.clear_supplier_button) # Adiciona ao layout
@@ -171,6 +181,7 @@ class ItemFormWindow(QWidget):
 
         # Botão de Busca
         search_button = QPushButton("Buscar")
+        search_button.setStyleSheet(button_style(BLUE))
         search_button.clicked.connect(self.open_material_search)
         input_layout.addWidget(search_button)
         
@@ -178,6 +189,7 @@ class ItemFormWindow(QWidget):
 
         # Botão de Adicionar/Atualizar em uma linha separada
         self.add_update_button = QPushButton("Adicionar Insumo")
+        self.add_update_button.setStyleSheet(button_style(GREEN))
         self.add_update_button.clicked.connect(self.add_update_composition_item)
         
         # O botão agora ocupa toda a largura
@@ -203,8 +215,10 @@ class ItemFormWindow(QWidget):
         # --- Barra de Ações da Composição ---
         action_bar_layout = QHBoxLayout()
         self.edit_selected_button = QPushButton("Editar Selecionado")
+        self.edit_selected_button.setStyleSheet(button_style(YELLOW))
         self.edit_selected_button.clicked.connect(self.load_selected_for_edit)
         self.remove_selected_button = QPushButton("Remover Selecionado")
+        self.remove_selected_button.setStyleSheet(button_style(RED))
         self.remove_selected_button.clicked.connect(self.remove_selected_composition_item)
 
         action_bar_layout.addStretch()

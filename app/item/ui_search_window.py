@@ -9,7 +9,10 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.item.service import ItemService
 from app.utils.ui_utils import show_error_message
 
-
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE
+)
+ 
 class ItemSearchWindow(QWidget):
     # Sinal que emitirá os dados do item selecionado
     item_selected = Signal(dict)
@@ -49,9 +52,11 @@ class ItemSearchWindow(QWidget):
         self.search_text.returnPressed.connect(self.load_items) # Busca ao pressionar Enter
 
         search_button = QPushButton("Buscar")
+        search_button.setStyleSheet(button_style(BLUE))
         search_button.clicked.connect(self.load_items)
         
         new_button = QPushButton("Novo Item")
+        new_button.setStyleSheet(button_style(GREEN))
         new_button.clicked.connect(self.open_new_item_window)
 
         search_layout.addWidget(self.search_field_combo)
