@@ -12,6 +12,12 @@ from app.utils.ui_utils import show_error_message
 from app.styles.buttons_styles import (
     button_style, GREEN, BLUE
 )
+from app.styles.input_styles import (
+    input_style, DEFAULT
+)
+from app.styles.search_fiel_style import (
+    search_field_style, DEFAULT
+)
  
 class ItemSearchWindow(QWidget):
     # Sinal que emitirá os dados do item selecionado
@@ -46,9 +52,11 @@ class ItemSearchWindow(QWidget):
         search_layout = QHBoxLayout()
 
         self.search_field_combo = QComboBox()
+        self.search_field_combo.setStyleSheet(search_field_style(DEFAULT))
         self.search_field_combo.addItems(["Descrição", "Código Interno", "Tipo", "ID"])
         
         self.search_text = QLineEdit()
+        self.search_text.setStyleSheet(input_style(DEFAULT))
         self.search_text.returnPressed.connect(self.load_items) # Busca ao pressionar Enter
 
         search_button = QPushButton("Buscar")
