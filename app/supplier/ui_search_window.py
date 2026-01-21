@@ -9,6 +9,10 @@ from app.supplier.service import SupplierService
 from app.utils.ui_utils import show_error_message
 from app.supplier.ui_edit_window import SupplierEditWindow
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE
+)
+
 def _safe_str(value):
     """Converte o valor para string, tratando None como uma string vazia."""
     return str(value) if value is not None else ""
@@ -42,6 +46,7 @@ class SupplierSearchWindow(QWidget):
         self.search_input.returnPressed.connect(self.load_suppliers)
 
         search_button = QPushButton("Buscar")
+        search_button.setStyleSheet(button_style(BLUE))
         search_button.clicked.connect(self.load_suppliers)
         
         search_layout.addWidget(self.search_field_combo)
@@ -50,6 +55,7 @@ class SupplierSearchWindow(QWidget):
         
         if not self.selection_mode:
             new_button = QPushButton("Novo")
+            new_button.setStyleSheet(button_style(GREEN))
             new_button.clicked.connect(self.open_new_supplier_window)
             search_layout.addWidget(new_button)
             

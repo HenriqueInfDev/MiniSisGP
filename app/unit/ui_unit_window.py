@@ -9,6 +9,10 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.unit.unit_service import UnitService
 from app.utils.ui_utils import show_error_message
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, RED, YELLOW
+)
+
 class UnitEditDialog(QDialog):
     def __init__(self, parent=None, unit_id=None, name="", abbreviation=""):
         super().__init__(parent)
@@ -23,6 +27,7 @@ class UnitEditDialog(QDialog):
         
         buttons_layout = QHBoxLayout()
         self.save_button = QPushButton("Salvar")
+        self.save_button.setStyleSheet(button_style(GREEN))
         self.save_button.clicked.connect(self.accept)
         buttons_layout.addWidget(self.save_button)
         layout.addRow(buttons_layout)
@@ -45,10 +50,13 @@ class UnitWindow(QWidget):
         
         buttons_layout = QHBoxLayout()
         new_button = QPushButton("Nova")
+        new_button.setStyleSheet(button_style(GREEN))
         new_button.clicked.connect(self.open_new_dialog)
         edit_button = QPushButton("Editar")
+        edit_button.setStyleSheet(button_style(YELLOW))
         edit_button.clicked.connect(self.open_edit_dialog)
         delete_button = QPushButton("Excluir")
+        delete_button.setStyleSheet(button_style(RED))
         delete_button.clicked.connect(self.delete_unit)
         buttons_layout.addStretch()
         buttons_layout.addWidget(new_button)

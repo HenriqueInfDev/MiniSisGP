@@ -9,6 +9,10 @@ from PySide6.QtCore import QRegularExpression, Qt
 from app.supplier.service import SupplierService
 from app.utils.ui_utils import show_error_message
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, RED
+)
+
 class SupplierEditWindow(QWidget):
     def __init__(self, supplier_id=None):
         super().__init__()
@@ -29,10 +33,13 @@ class SupplierEditWindow(QWidget):
 
         header_layout = QHBoxLayout()
         self.new_button = QPushButton("Novo")
+        self.new_button.setStyleSheet(button_style(GREEN))
         self.new_button.clicked.connect(self.clear_form)
         self.save_button = QPushButton("Salvar")
+        self.save_button.setStyleSheet(button_style(GREEN))
         self.save_button.clicked.connect(self.save_supplier)
         self.delete_button = QPushButton("Excluir")
+        self.delete_button.setStyleSheet(button_style(RED))
         self.delete_button.clicked.connect(self.delete_supplier)
         header_layout.addStretch()
         header_layout.addWidget(self.new_button)
