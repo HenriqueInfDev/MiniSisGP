@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from app.item.unit_service import UnitService
+from app.unit.unit_service import UnitService
 from app.utils.ui_utils import show_error_message
 
 class UnitEditDialog(QDialog):

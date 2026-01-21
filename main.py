@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         
         registers_menu.addSeparator()
 
-        from app.item.ui_unit_window import UnitWindow
+        from app.unit.ui_unit_window import UnitWindow
         self._add_menu_action(registers_menu, "Unidades de Medida", "unit_window", UnitWindow)
         
         # Menu Movimento

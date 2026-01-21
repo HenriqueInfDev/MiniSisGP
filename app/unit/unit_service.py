@@ -1,5 +1,5 @@
 # app/item/unit_service.py
-from app.item.unit_repository import UnitRepository
+from app.unit.unit_repository import UnitRepository
 
 class UnitService:
     def __init__(self):
