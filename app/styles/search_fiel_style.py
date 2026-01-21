@@ -9,7 +9,11 @@ def search_field_style(color):
     QComboBox {{
         border-radius: {color['border-radius']};
         padding: {color['padding']};
-        padding-right: 26px;
         font-weight: {color['font-weight']};
+    }}
+    QComboBox::down-arrow {{
+        image: url(app/styles/images/icons/search_field_arrow_down.svg);
+        width: 16px;
+        height: 16px;
     }}
     """
