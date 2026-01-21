@@ -11,9 +11,14 @@ def search_field_style(color):
         padding: {color['padding']};
         font-weight: {color['font-weight']};
     }}
+    QComboBox::drop-down {{
+        background: transparent;
+        border: none;
+        width: 28px;
+    }}
     QComboBox::down-arrow {{
         image: url(app/styles/images/icons/search_field_arrow_down.svg);
-        width: 16px;
-        height: 16px;
+        width: 12px;
+        height: 12px;
     }}
     """
