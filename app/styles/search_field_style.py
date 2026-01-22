@@ -1,0 +1,37 @@
+DEFAULT = {
+    "border-radius": "6px",
+    "padding": "6px 8px",
+    "font-weight": "500",
+    "border-color": "#B3B3B3"
+}
+
+def search_field_style(c):
+    return f"""
+    QComboBox {{
+        padding: {c['padding']};
+        font-weight: {c['font-weight']};
+        border: 1px solid {c['border-color']};
+        border-radius: {c['border-radius']};
+        background-color: white;
+    }}
+
+    QComboBox::drop-down {{
+        background: transparent;
+        border: none;
+        width: 28px;
+    }}
+
+    QComboBox::down-arrow {{
+        image: url(app/styles/images/icons/search_field_arrow_down.svg);
+        width: 12px;
+        height: 12px;
+    }}
+
+    QComboBox:hover {{
+        border-color: #999999;
+    }}
+
+    QComboBox:focus {{
+        border-color: #7A7A7A;
+    }}
+    """

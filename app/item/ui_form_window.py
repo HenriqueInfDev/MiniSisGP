@@ -13,6 +13,18 @@ from app.styles.buttons_styles import (
     button_style, GREEN, BLUE, RED, GRAY, YELLOW
 )
 
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
+) 
+
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class ItemFormWindow(QWidget):
     def __init__(self, item_id=None):
         super().__init__()
@@ -23,6 +35,7 @@ class ItemFormWindow(QWidget):
 
         self.setWindowTitle(f"Editando Item #{item_id}" if item_id else "Novo Item")
         self.setGeometry(200, 200, 700, 600)
+        self.setStyleSheet(window_style(LIGHT))
 
         # Layout Principal
         self.main_layout = QVBoxLayout(self)
@@ -123,17 +136,22 @@ class ItemFormWindow(QWidget):
         main_widget = QWidget()
         layout = QFormLayout(main_widget)
 
-        self.codigo_interno_input = QLineEdit()
+        self.code_internal_input = QLineEdit()
+        self.code_internal_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.description_input = QLineEdit()
+        self.description_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.type_combo = QComboBox()
+        self.type_combo.setStyleSheet(search_field_style(DEFAULT))
         self.type_combo.addItems(["Insumo", "Produto", "Ambos"])
         self.unit_combo = QComboBox()
+        self.unit_combo.setStyleSheet(search_field_style(DEFAULT))
 
         # Novo layout para o fornecedor
         supplier_layout = QHBoxLayout()
         self.supplier_display = QLineEdit()
         self.supplier_display.setReadOnly(True)
         self.supplier_display.setPlaceholderText("Selecione um fornecedor")
+        self.supplier_display.setStyleSheet(input_style(DEFAULTINPUT))
         self.search_supplier_button = QPushButton("Buscar")
         self.search_supplier_button.setStyleSheet(button_style(BLUE))
         self.clear_supplier_button = QPushButton("Limpar") # Novo botão
@@ -142,7 +160,7 @@ class ItemFormWindow(QWidget):
         supplier_layout.addWidget(self.search_supplier_button)
         supplier_layout.addWidget(self.clear_supplier_button) # Adiciona ao layout
 
-        layout.addRow("Código Interno:", self.codigo_interno_input)
+        layout.addRow("Código Interno:", self.code_internal_input)
         layout.addRow("Descrição:", self.description_input)
         layout.addRow("Tipo de Item:", self.type_combo)
         layout.addRow("Unidade:", self.unit_combo)
@@ -166,6 +184,7 @@ class ItemFormWindow(QWidget):
         self.material_display = QLineEdit()
         self.material_display.setPlaceholderText("Selecione um insumo...")
         self.material_display.setReadOnly(True)
+        self.material_display.setStyleSheet(input_style(DEFAULTINPUT))
         input_layout.addWidget(self.material_display, 6) # Proporção 6
 
         # Campo de Quantidade
@@ -209,7 +228,7 @@ class ItemFormWindow(QWidget):
         self.composition_table.setColumnHidden(0, True)
         self.composition_table.verticalHeader().setVisible(False)
         self.composition_table.setSortingEnabled(True)
-        self.composition_table.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
+        self.composition_table.setAlternatingRowColors(True)
         layout.addWidget(self.composition_table)
 
         # --- Barra de Ações da Composição ---
@@ -245,7 +264,7 @@ class ItemFormWindow(QWidget):
             response = self.item_service.get_item_by_id(self.current_item_id)
             if response["success"]:
                 item = response["data"]
-                self.codigo_interno_input.setText(item['CODIGO_INTERNO'])
+                self.code_internal_input.setText(item['CODIGO_INTERNO'])
                 self.description_input.setText(item['DESCRICAO'])
                 self.type_combo.setCurrentText(item['TIPO_ITEM'])
                 
@@ -446,7 +465,7 @@ class ItemFormWindow(QWidget):
     def new_item(self):
         self.current_item_id = None
         self.setWindowTitle("Novo Item")
-        self.codigo_interno_input.clear()
+        self.code_internal_input.clear()
         self.description_input.clear()
         self.type_combo.setCurrentIndex(0)
         self.unit_combo.setCurrentIndex(0)
@@ -465,7 +484,7 @@ class ItemFormWindow(QWidget):
 
     def save_item(self):
         # Coleta dados da aba Principal
-        codigo_interno = self.codigo_interno_input.text()
+        codigo_interno = self.code_internal_input.text()
         description = self.description_input.text()
         item_type = self.type_combo.currentText()
         unit_id = self.unit_combo.currentData()

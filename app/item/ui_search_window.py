@@ -13,10 +13,14 @@ from app.styles.buttons_styles import (
     button_style, GREEN, BLUE
 )
 from app.styles.input_styles import (
-    input_style, DEFAULT
+    input_style, DEFAULTINPUT
 )
-from app.styles.search_fiel_style import (
+from app.styles.search_field_style import (
     search_field_style, DEFAULT
+)
+
+from app.styles.windows_style import (
+    window_style, LIGHT
 )
  
 class ItemSearchWindow(QWidget):
@@ -34,6 +38,7 @@ class ItemSearchWindow(QWidget):
         title = "Selecionar Insumo" if selection_mode else "Pesquisa de Produto"
         self.setWindowTitle(title)
         self.setGeometry(150, 150, 800, 600)
+        self.setStyleSheet(window_style(LIGHT))
 
         # Layout Principal
         self.main_layout = QVBoxLayout(self)
@@ -56,7 +61,7 @@ class ItemSearchWindow(QWidget):
         self.search_field_combo.addItems(["Descrição", "Código Interno", "Tipo", "ID"])
         
         self.search_text = QLineEdit()
-        self.search_text.setStyleSheet(input_style(DEFAULT))
+        self.search_text.setStyleSheet(input_style(DEFAULTINPUT))
         self.search_text.returnPressed.connect(self.load_items) # Busca ao pressionar Enter
 
         search_button = QPushButton("Buscar")
@@ -83,6 +88,7 @@ class ItemSearchWindow(QWidget):
         self.table_model = QStandardItemModel()
         self.table_model.setHorizontalHeaderLabels(["ID", "Descrição", "Código Interno", "Tipo", "Un.", "Quantidade", "Custo Unit."])
         self.table_view.setModel(self.table_model)
+        self.table_view.setAlternatingRowColors(True)
         header = self.table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch) # Coluna "Descrição"
@@ -90,7 +96,6 @@ class ItemSearchWindow(QWidget):
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
         self.table_view.setSortingEnabled(True)
-        self.table_view.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         self.table_view.doubleClicked.connect(self.handle_double_click)
 
         results_layout.addWidget(self.table_view)

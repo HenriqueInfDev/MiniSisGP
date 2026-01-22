@@ -1,4 +1,4 @@
-DEFAULT = {
+DEFAULTINPUT = {
     "border-radius": "6px",
     "padding": "6px 6px",
     "font-weight": "500"

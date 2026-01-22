@@ -5,6 +5,10 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt
 from functools import partial
 
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -12,6 +16,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("GP - MiniSis")
         self.setWindowIcon(QIcon('app/assets/logo.png'))
         self.setGeometry(100, 100, 1024, 768)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_menus()
         self.setup_central_widget()
         self.statusBar().showMessage("Pronto")
@@ -84,6 +89,7 @@ class MainWindow(QMainWindow):
 
     def setup_central_widget(self):
         central_widget = QLabel("Bem-vindo ao MiniSis - Gestão de Produção")
+        central_widget.setStyleSheet("font-size: 30px;")
         central_widget.setAlignment(Qt.AlignCenter)
         self.setCentralWidget(central_widget)
 
@@ -107,15 +113,15 @@ import traceback
 
 def main():
     try:
-        logging.info("Application starting up.")
         from app.database.db import get_db_manager
         get_db_manager()
+
         app = QApplication(sys.argv)
         main_window = MainWindow()
-        main_window.show()
+        main_window.showMaximized()
         sys.exit(app.exec())
-    except Exception as e:
-        logging.critical("Unhandled exception", exc_info=True)
+
+    except Exception:
         traceback.print_exc()
         sys.exit(1)
 
