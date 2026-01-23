@@ -23,7 +23,7 @@ def window_style(color):
         background-color: {color['background']};
         color: {color['text-color']};
         font-family: "Segoe UI", "Inter", "Arial";
-        font-size: 13px;
+        font-size: 14px;
     }}
 
     /* =====================
@@ -40,6 +40,7 @@ def window_style(color):
 
     QLabel {{
         color: {color['text-color']};
+        font-weight: 700;
     }}
 
     /* =====================

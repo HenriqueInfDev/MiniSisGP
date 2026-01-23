@@ -22,7 +22,7 @@ from app.styles.search_field_style import (
 ) 
 
 from app.styles.input_styles import (
-    input_style, DEFAULTINPUT
+    input_style, doublespinbox_style, DEFAULTINPUT
 )
 
 class ItemFormWindow(QWidget):
@@ -189,12 +189,14 @@ class ItemFormWindow(QWidget):
 
         # Campo de Quantidade
         self.quantity_spinbox = QDoubleSpinBox()
+        self.quantity_spinbox.setStyleSheet(doublespinbox_style(DEFAULTINPUT))
         self.quantity_spinbox.setRange(0.0, 99999.99)
         self.quantity_spinbox.setDecimals(4)
         input_layout.addWidget(self.quantity_spinbox, 2) # Proporção 2
 
         # Label da Unidade
         self.unit_label = QLabel("Un.")
+        self.unit_label.setStyleSheet("background-color: transparent")
         self.unit_label.setFixedWidth(40) # Largura fixa para alinhar
         input_layout.addWidget(self.unit_label)
 
