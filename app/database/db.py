@@ -173,10 +173,11 @@ class DatabaseManager:
         entry_items_columns = {col[1] for col in cursor.fetchall()}
         if 'ID_FORNECEDOR' not in entry_items_columns:
             cursor.execute('ALTER TABLE ENTRADANOTA_ITENS ADD COLUMN ID_FORNECEDOR INTEGER REFERENCES FORNECEDOR(ID)')
-            cursor.execute("""
-                UPDATE ENTRADANOTA_ITENS SET ID_FORNECEDOR = (
-                    SELECT ID_FORNECEDOR FROM ENTRADANota WHERE ENTRADANOTA.ID = ENTRADANOTA_ITENS.ID_ENTRADA)
-            """)
+            if self._column_exists(cursor, 'ENTRADANOTA', 'ID_FORNECEDOR'):
+                cursor.execute("""
+                    UPDATE ENTRADANOTA_ITENS SET ID_FORNECEDOR = (
+                        SELECT ID_FORNECEDOR FROM ENTRADANota WHERE ENTRADANOTA.ID = ENTRADANOTA_ITENS.ID_ENTRADA)
+                """)
         
         # Non-destructive migration for ENTRADANOTA
         self._migrate_entradanota_table(cursor)

@@ -54,17 +54,23 @@ class SupplierRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("UPDATE FORNECEDOR SET STATUS = 'Inativo' WHERE ID = ?", (supplier_id,))
+            cursor.execute("DELETE FROM FORNECEDOR WHERE ID = ?", (supplier_id,))
             conn.commit()
             return cursor.rowcount > 0
         except sqlite3.Error:
             conn.rollback()
             return False
 
+    def is_referenced_by_items(self, supplier_id):
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM ITEM WHERE ID_FORNECEDOR_PADRAO = ?", (supplier_id,))
+        return cursor.fetchone() is not None
+
     def has_stock_entries(self, supplier_id):
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM ENTRADANOTA WHERE ID_FORNECEDOR = ?", (supplier_id,))
+        cursor.execute("SELECT 1 FROM ENTRADANOTA_ITENS WHERE ID_FORNECEDOR = ?", (supplier_id,))
         return cursor.fetchone() is not None
             
     def search(self, search_text, search_field):

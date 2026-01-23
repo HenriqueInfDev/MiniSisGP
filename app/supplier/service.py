@@ -59,6 +59,9 @@ class SupplierService:
             if self.supplier_repository.has_stock_entries(supplier_id):
                 return {"success": False, "message": "Não é possível excluir um fornecedor que possui notas de entrada."}
 
+            if self.supplier_repository.is_referenced_by_items(supplier_id):
+                return {"success": False, "message": "Não é possível excluir um fornecedor que está vinculado a um ou mais itens."}
+
             if self.supplier_repository.delete(supplier_id):
                 return {"success": True, "message": "Fornecedor excluído com sucesso."}
             else:
