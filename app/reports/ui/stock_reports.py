@@ -56,6 +56,14 @@ class StockReportWindow(QWidget):
             self.filters_layout.addRow("Período (até):", self.filters["periodo_ate"])
         elif self.report_type == "Estoque Atual":
             pass # No filters for this report
+        elif self.report_type == "Estoque Baixo":
+            pass # No filters for this report
+        elif self.report_type == "Curva ABC de Estoque":
+            pass # No filters for this report
+        elif self.report_type == "Itens Sem Giro":
+            self.filters["dias"] = QLineEdit()
+            self.filters["dias"].setPlaceholderText("Dias (padrão 30)")
+            self.filters_layout.addRow("Inativo há (dias):", self.filters["dias"])
         elif self.report_type == "Itens da Nota de Entrada":
             self.filters["nota_de"] = QLineEdit()
             self.filters["nota_ate"] = QLineEdit()
@@ -82,6 +90,12 @@ class StockReportWindow(QWidget):
             headers, data = self.generate_stock_movement_report()
         elif self.report_type == "Estoque Atual":
             headers, data = self.generate_current_stock_report()
+        elif self.report_type == "Estoque Baixo":
+            headers, data = self.generate_low_stock_report()
+        elif self.report_type == "Curva ABC de Estoque":
+            headers, data = self.generate_abc_curve_report()
+        elif self.report_type == "Itens Sem Giro":
+            headers, data = self.generate_inactive_items_report()
         elif self.report_type == "Itens da Nota de Entrada":
             headers, data = self.generate_entry_items_report()
         else:
@@ -180,5 +194,35 @@ class StockReportWindow(QWidget):
         
         headers = ["Nota", "Insumo", "Quantidade", "Valor Unitário", "Valor Total"]
         data = [[i["nota"], i["insumo"], i["quantidade"], i["valor_unitario"], i["valor_total"]] for i in entry_items_data]
+        
+        return headers, data
+
+    def generate_low_stock_report(self):
+        db_manager = get_db_manager()
+        stock = db_manager.get_low_stock_report()
+        
+        headers = ["Item", "Saldo em Estoque", "Custo Médio"]
+        data = [[s["DESCRICAO"], s["SALDO_ESTOQUE"], f"R$ {s['CUSTO_MEDIO']:.2f}"] for s in stock]
+        
+        return headers, data
+
+    def generate_abc_curve_report(self):
+        db_manager = get_db_manager()
+        stock = db_manager.get_abc_curve_report()
+        
+        headers = ["Item", "Saldo", "Custo Médio", "Valor Total"]
+        data = [[s["DESCRICAO"], s["SALDO_ESTOQUE"], f"R$ {s['CUSTO_MEDIO']:.2f}", f"R$ {s['valor_total']:.2f}"] for s in stock]
+        
+        return headers, data
+
+    def generate_inactive_items_report(self):
+        dias = self.filters["dias"].text()
+        dias = int(dias) if dias.isdigit() else 30
+        
+        db_manager = get_db_manager()
+        items = db_manager.get_inactive_items_report(dias)
+        
+        headers = ["Item", "Saldo em Estoque", "Última Movimentação"]
+        data = [[i["DESCRICAO"], i["SALDO_ESTOQUE"], i["ultima_movimentacao"] or "Nenhuma"] for i in items]
         
         return headers, data

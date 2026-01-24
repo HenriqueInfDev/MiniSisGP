@@ -2,7 +2,8 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout, QLineEdit,
     QPushButton, QMessageBox, QHeaderView, QTableWidget, QTableWidgetItem,
-    QLabel, QDateEdit, QAbstractItemView, QInputDialog, QDialogButtonBox
+    QLabel, QDateEdit, QAbstractItemView, QInputDialog, QDialogButtonBox,
+    QDialog, QDoubleSpinBox
 )
 from PySide6.QtCore import QDate, Qt
 from app.production import order_operations
@@ -20,8 +21,46 @@ from app.styles.windows_style import (
     window_style, LIGHT
 )
 from app.styles.input_styles import (
-    input_style, DEFAULTINPUT
+    input_style, doublespinbox_style, DEFAULTINPUT
 )
+
+class FinalizeOrderDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Finalizar Ordem de Produção")
+        self.setMinimumWidth(300)
+        
+        layout = QVBoxLayout(self)
+        
+        self.label = QLabel("Quantidade produzida:")
+        layout.addWidget(self.label)
+        
+        self.spinbox = QDoubleSpinBox()
+        self.spinbox.setRange(0, 1000000)
+        self.spinbox.setDecimals(2)
+        self.spinbox.setStyleSheet(doublespinbox_style(DEFAULTINPUT))
+        layout.addWidget(self.spinbox)
+        
+        # Spacer
+        layout.addSpacing(10)
+        
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        
+        # Style buttons
+        ok_button = self.button_box.button(QDialogButtonBox.Ok)
+        if ok_button:
+            ok_button.setStyleSheet(button_style(BLUE))
+            
+        cancel_button = self.button_box.button(QDialogButtonBox.Cancel)
+        if cancel_button:
+            cancel_button.setStyleSheet(button_style(GRAY))
+            
+        layout.addWidget(self.button_box)
+
+    def get_value(self):
+        return self.spinbox.value()
 
 class ProductionOrderWindow(QWidget):
     def __init__(self, op_id=None):
@@ -303,11 +342,10 @@ class ProductionOrderWindow(QWidget):
         if not self.current_op_id:
             return
 
-        produced_qty, ok = QInputDialog.getDouble(self, "Finalizar Ordem de Produção",
-                                                  "Quantidade produzida:",
-                                                  0, 0, 1000000, 2)
+        dialog = FinalizeOrderDialog(self)
         
-        if ok:
+        if dialog.exec():
+            produced_qty = dialog.get_value()
             success, message = order_operations.finalize_op(self.current_op_id, produced_qty)
             if success:
                 show_success_message(self, "Sucesso", message)

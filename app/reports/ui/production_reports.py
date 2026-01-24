@@ -70,6 +70,10 @@ class ProductionReportWindow(QWidget):
             self.filters["produto_ate"] = QLineEdit()
             self.filters_layout.addRow("Produto (de):", self.filters["produto_de"])
             self.filters_layout.addRow("Produto (até):", self.filters["produto_ate"])
+        elif self.report_type == "Rendimento de OP":
+            pass # No filters for now
+        elif self.report_type == "Necessidade de Insumos":
+            pass # No filters for now
 
         self.layout.addLayout(self.filters_layout)
 
@@ -93,6 +97,10 @@ class ProductionReportWindow(QWidget):
             headers, data = self.generate_product_composition_report()
         elif self.report_type == "Produção por Período":
             headers, data = self.generate_production_by_period_report()
+        elif self.report_type == "Rendimento de OP":
+            headers, data = self.generate_yield_report()
+        elif self.report_type == "Necessidade de Insumos":
+            headers, data = self.generate_material_requirements_report()
         else:
             headers, data = [], []
 
@@ -180,8 +188,26 @@ class ProductionReportWindow(QWidget):
         db_manager = get_db_manager()
         composition = db_manager.get_product_composition(filters)
         
-        headers = ["Insumo", "Quantidade"]
-        data = [[c["insumo"], c["quantidade"]] for c in composition]
+        headers = ["Produto", "Insumo", "Quantidade", "Un."]
+        data = [[c["produto"], c["insumo"], c["quantidade"], c["unidade"]] for c in composition]
+        
+        return headers, data
+
+    def generate_yield_report(self):
+        db_manager = get_db_manager()
+        yield_data = db_manager.get_yield_report()
+        
+        headers = ["ID OP", "Número", "Data Criação", "Qtd Planejada", "Qtd Produzida", "Rendimento (%)"]
+        data = [[d["ID"], d["NUMERO"], d["DATA_CRIACAO"], f"{d['qtd_planejada']:.2f}", f"{d['qtd_produzida']:.2f}", f"{d['rendimento']:.2f}%"] for d in yield_data]
+        
+        return headers, data
+
+    def generate_material_requirements_report(self):
+        db_manager = get_db_manager()
+        reqs = db_manager.get_material_requirements_report()
+        
+        headers = ["Insumo", "Un.", "Qtd Necessária", "Saldo em Estoque", "Falta"]
+        data = [[d["insumo"], d["unidade"], f"{d['qtd_necessaria']:.2f}", f"{d['qtd_estoque']:.2f}", f"{d['falta']:.2f}"] for d in reqs]
         
         return headers, data
 

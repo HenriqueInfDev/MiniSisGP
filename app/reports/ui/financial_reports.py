@@ -129,15 +129,15 @@ class FinancialReportWindow(QWidget):
         db_manager = get_db_manager()
         profit_data = db_manager.get_profit_by_product(filters)
         
-        headers = ["Produto", "Custo Unitário", "Preço de Venda", "Quantidade Vendida", "Lucro Unitário", "Lucro Total"]
+        headers = ["Produto", "Custo Unit.", "Preço Venda", "Qtd Vendida", "Lucro Unit.", "Lucro Total"]
         data = [
             [
                 d["produto"],
-                d["custo_unitario"],
-                d["preco_venda"],
-                d["quantidade_vendida"],
-                d["lucro_unitario"],
-                d["lucro_total"],
+                f"R$ {d['custo_unitario']:.2f}",
+                f"R$ {d['preco_venda']:.2f}",
+                f"{d['quantidade_vendida']:.2f}",
+                f"R$ {d['lucro_unitario']:.2f}",
+                f"R$ {d['lucro_total']:.2f}",
             ]
             for d in profit_data
         ]
@@ -171,9 +171,9 @@ class FinancialReportWindow(QWidget):
         data = []
         if profit_data and profit_data["total_vendas"] is not None:
             data.append([
-                profit_data["total_vendas"],
-                profit_data["custo_total"],
-                profit_data["lucro_final"],
+                f"R$ {profit_data['total_vendas']:.2f}",
+                f"R$ {profit_data['custo_total']:.2f}",
+                f"R$ {profit_data['lucro_final']:.2f}",
             ])
         
         return headers, data

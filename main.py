@@ -60,12 +60,22 @@ class MainWindow(QMainWindow):
         # Menu Relatórios
         reports_menu = menu_bar.addMenu("&Relatórios")
         
+        # Submenu Cadastros
+        general_reports_menu = reports_menu.addMenu("Cadastros")
+        from app.reports.ui.general_reports import GeneralReportWindow
+        self._add_menu_action(general_reports_menu, "Fornecedores", "suppliers_report", lambda: GeneralReportWindow("Fornecedores"))
+        self._add_menu_action(general_reports_menu, "Itens", "items_report", lambda: GeneralReportWindow("Itens"))
+
         # Submenu Estoque
         stock_reports_menu = reports_menu.addMenu("Estoque")
         from app.reports.ui.stock_reports import StockReportWindow
         self._add_menu_action(stock_reports_menu, "Entradas (Compras)", "stock_entry_report", lambda: StockReportWindow("Entradas (Compras)"))
         self._add_menu_action(stock_reports_menu, "Itens da Nota de Entrada", "entry_items_report", lambda: StockReportWindow("Itens da Nota de Entrada"))
+        self._add_menu_action(stock_reports_menu, "Movimentação de Estoque", "stock_movement_report", lambda: StockReportWindow("Movimentação de Estoque"))
         self._add_menu_action(stock_reports_menu, "Estoque Atual", "current_stock_report", lambda: StockReportWindow("Estoque Atual"))
+        self._add_menu_action(stock_reports_menu, "Estoque Baixo", "low_stock_report", lambda: StockReportWindow("Estoque Baixo"))
+        self._add_menu_action(stock_reports_menu, "Curva ABC de Estoque", "abc_report", lambda: StockReportWindow("Curva ABC de Estoque"))
+        self._add_menu_action(stock_reports_menu, "Itens Sem Giro", "inactive_report", lambda: StockReportWindow("Itens Sem Giro"))
 
         # Submenu Produção
         production_reports_menu = reports_menu.addMenu("Produção")
@@ -73,11 +83,16 @@ class MainWindow(QMainWindow):
         self._add_menu_action(production_reports_menu, "Ordens de Produção", "production_orders_report", lambda: ProductionReportWindow("Ordens de Produção"))
         self._add_menu_action(production_reports_menu, "Produção por Período", "production_by_period_report", lambda: ProductionReportWindow("Produção por Período"))
         self._add_menu_action(production_reports_menu, "Produção por Linha", "production_by_line_report", lambda: ProductionReportWindow("Produção por Linha"))
+        self._add_menu_action(production_reports_menu, "Composição de Produto", "product_composition_report", lambda: ProductionReportWindow("Composição / Estrutura de Produto"))
+        self._add_menu_action(production_reports_menu, "Rendimento de OP", "yield_report", lambda: ProductionReportWindow("Rendimento de OP"))
+        self._add_menu_action(production_reports_menu, "Necessidade de Insumos", "requirements_report", lambda: ProductionReportWindow("Necessidade de Insumos"))
 
         # Submenu Financeiro
         financial_reports_menu = reports_menu.addMenu("Financeiro")
         from app.reports.ui.financial_reports import FinancialReportWindow
         self._add_menu_action(financial_reports_menu, "Custo do Produto", "product_cost_report", lambda: FinancialReportWindow("Custo do Produto"))
+        self._add_menu_action(financial_reports_menu, "Lucro por Produto", "profit_by_product_report", lambda: FinancialReportWindow("Lucro por Produto"))
+        self._add_menu_action(financial_reports_menu, "Lucro por Período", "profit_by_period_report", lambda: FinancialReportWindow("Lucro por Período"))
 
         # Menu Configurações
         settings_menu = menu_bar.addMenu("&Configurações")

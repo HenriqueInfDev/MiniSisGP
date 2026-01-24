@@ -567,11 +567,14 @@ class DatabaseManager:
         
         query = """
             SELECT
+                i_produto.DESCRICAO as produto,
                 i_insumo.DESCRICAO as insumo,
-                c.QUANTIDADE as quantidade
+                c.QUANTIDADE as quantidade,
+                u.SIGLA as unidade
             FROM COMPOSICAO c
             LEFT JOIN ITEM i_produto ON c.ID_PRODUTO = i_produto.ID
             LEFT JOIN ITEM i_insumo ON c.ID_INSUMO = i_insumo.ID
+            LEFT JOIN UNIDADE u ON i_insumo.ID_UNIDADE = u.ID
         """
         
         where_clauses = []
@@ -590,6 +593,116 @@ class DatabaseManager:
             
         cursor.execute(query, params)
         
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_suppliers_report(self, filters=None):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = "SELECT ID, RAZAO_SOCIAL, NOME_FANTASIA, CNPJ, STATUS FROM FORNECEDOR"
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_items_report(self, filters=None):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = "SELECT i.ID, i.CODIGO_INTERNO, i.DESCRICAO, i.TIPO_ITEM, u.SIGLA as unidade, i.SALDO_ESTOQUE, i.CUSTO_MEDIO FROM ITEM i JOIN UNIDADE u ON i.ID_UNIDADE = u.ID"
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_low_stock_report(self, threshold=10):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = "SELECT DESCRICAO, SALDO_ESTOQUE, CUSTO_MEDIO FROM ITEM WHERE SALDO_ESTOQUE < ?"
+        cursor.execute(query, (threshold,))
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_yield_report(self, filters=None):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = """
+            SELECT 
+                op.ID, 
+                op.NUMERO, 
+                op.DATA_CRIACAO, 
+                SUM(opi.QUANTIDADE_PRODUZIR) as qtd_planejada, 
+                op.QUANTIDADE_PRODUZIDA as qtd_produzida,
+                CASE WHEN SUM(opi.QUANTIDADE_PRODUZIR) > 0 
+                     THEN (op.QUANTIDADE_PRODUZIDA / SUM(opi.QUANTIDADE_PRODUZIR)) * 100 
+                     ELSE 0 END as rendimento
+            FROM ORDEMPRODUCAO op
+            JOIN ORDEMPRODUCAO_ITENS opi ON op.ID = opi.ID_ORDEM_PRODUCAO
+            WHERE op.STATUS = 'Concluída'
+            GROUP BY op.ID
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_material_requirements_report(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = """
+            SELECT 
+                i_insumo.DESCRICAO as insumo,
+                u.SIGLA as unidade,
+                SUM(opi.QUANTIDADE_PRODUZIR * c.QUANTIDADE) as qtd_necessaria,
+                i_insumo.SALDO_ESTOQUE as qtd_estoque,
+                CASE WHEN SUM(opi.QUANTIDADE_PRODUZIR * c.QUANTIDADE) > i_insumo.SALDO_ESTOQUE 
+                     THEN SUM(opi.QUANTIDADE_PRODUZIR * c.QUANTIDADE) - i_insumo.SALDO_ESTOQUE 
+                     ELSE 0 END as falta
+            FROM ORDEMPRODUCAO op
+            JOIN ORDEMPRODUCAO_ITENS opi ON op.ID = opi.ID_ORDEM_PRODUCAO
+            JOIN COMPOSICAO c ON opi.ID_PRODUTO = c.ID_PRODUTO
+            JOIN ITEM i_insumo ON c.ID_INSUMO = i_insumo.ID
+            JOIN UNIDADE u ON i_insumo.ID_UNIDADE = u.ID
+            WHERE op.STATUS = 'Em Andamento'
+            GROUP BY i_insumo.ID
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_abc_curve_report(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = """
+            SELECT 
+                DESCRICAO,
+                SALDO_ESTOQUE,
+                CUSTO_MEDIO,
+                (SALDO_ESTOQUE * CUSTO_MEDIO) as valor_total
+            FROM ITEM
+            ORDER BY valor_total DESC
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        return [dict(zip(column_names, row)) for row in rows]
+
+    def get_inactive_items_report(self, days=30):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = """
+            SELECT 
+                i.DESCRICAO,
+                i.SALDO_ESTOQUE,
+                MAX(m.DATA_MOVIMENTO) as ultima_movimentacao
+            FROM ITEM i
+            LEFT JOIN MOVIMENTO m ON i.ID = m.ID_ITEM
+            GROUP BY i.ID
+            HAVING ultima_movimentacao < date('now', '-' || ? || ' days') OR ultima_movimentacao IS NULL
+        """
+        cursor.execute(query, (days,))
         rows = cursor.fetchall()
         column_names = [description[0] for description in cursor.description]
         return [dict(zip(column_names, row)) for row in rows]

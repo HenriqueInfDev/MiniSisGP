@@ -1,7 +1,5 @@
 __pycache__/
 *.py[cod]
 *$py.class
-app.log
-Gestão de Produção/
-*.db
 .pytest_cache/
+app.log
