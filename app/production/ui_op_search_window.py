@@ -8,6 +8,19 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.production import order_operations
 from app.utils.date_utils import format_date_for_display
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class OPSearchWindow(QWidget):
     op_selected = Signal(int)
     
@@ -18,6 +31,7 @@ class OPSearchWindow(QWidget):
         self.production_order_window = None
         self.setWindowTitle("Pesquisa de Ordens de Produção")
         self.setGeometry(200, 200, 800, 600)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         self.load_ops()
 
@@ -27,12 +41,16 @@ class OPSearchWindow(QWidget):
         search_group = QGroupBox("Pesquisa")
         layout = QHBoxLayout()
         self.search_field = QComboBox()
+        self.search_field.setStyleSheet(search_field_style(DEFAULT))
         self.search_field.addItems(["ID", "Status"])
         self.search_term = QLineEdit()
+        self.search_term.setStyleSheet(input_style(DEFAULTINPUT))
         self.search_term.returnPressed.connect(self.load_ops)
         search_button = QPushButton("Buscar")
+        search_button.setStyleSheet(button_style(BLUE))
         search_button.clicked.connect(self.load_ops)
         new_op_button = QPushButton("Nova Ordem de Produção")
+        new_op_button.setStyleSheet(button_style(GREEN))
         new_op_button.clicked.connect(self.open_new_production_order)
         layout.addWidget(self.search_field)
         layout.addWidget(self.search_term, 1)
@@ -54,7 +72,6 @@ class OPSearchWindow(QWidget):
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
         self.table_view.setSortingEnabled(True)
-        self.table_view.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         self.table_view.doubleClicked.connect(self.handle_double_click)
         layout.addWidget(self.table_view)
         results_group.setLayout(layout)

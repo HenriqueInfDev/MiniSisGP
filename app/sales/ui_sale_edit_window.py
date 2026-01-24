@@ -10,6 +10,16 @@ from app.item.ui_search_window import ItemSearchWindow
 from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
 from app.utils.date_utils import BRAZILIAN_DATE_FORMAT, format_qdate_for_db
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class SaleEditWindow(QWidget):
     def __init__(self, sale_id=None):
         super().__init__()
@@ -21,6 +31,7 @@ class SaleEditWindow(QWidget):
         title = f"Editando Saída #{sale_id}" if sale_id else "Nova Saída de Produto"
         self.setWindowTitle(title)
         self.setGeometry(250, 250, 800, 600)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
 
         if self.current_sale_id:
@@ -33,8 +44,10 @@ class SaleEditWindow(QWidget):
         
         header_layout = QHBoxLayout()
         self.save_button = QPushButton("Salvar")
+        self.save_button.setStyleSheet(button_style(GREEN))
         self.save_button.clicked.connect(self.save_sale)
         self.finalize_button = QPushButton("Finalizar Saída")
+        self.finalize_button.setStyleSheet(button_style(BLUE))
         self.finalize_button.clicked.connect(self.finalize_sale)
         header_layout.addStretch()
         header_layout.addWidget(self.save_button)
@@ -48,6 +61,7 @@ class SaleEditWindow(QWidget):
         self.date_input.setDisplayFormat(BRAZILIAN_DATE_FORMAT)
         self.date_input.setDate(QDate.currentDate())
         self.observacao_input = QLineEdit()
+        self.observacao_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.status_display = QLabel("Em Aberto")
 
         form.addRow("ID da Saída:", self.sale_id_display)
@@ -77,8 +91,10 @@ class SaleEditWindow(QWidget):
         buttons_layout.addWidget(self.total_label)
         buttons_layout.addStretch()
         self.add_item_button = QPushButton("Adicionar Produto")
+        self.add_item_button.setStyleSheet(button_style(GREEN))
         self.add_item_button.clicked.connect(self.open_item_search)
         self.remove_item_button = QPushButton("Remover Produto")
+        self.remove_item_button.setStyleSheet(button_style(RED))
         self.remove_item_button.clicked.connect(self.remove_item)
         buttons_layout.addWidget(self.add_item_button)
         buttons_layout.addWidget(self.remove_item_button)

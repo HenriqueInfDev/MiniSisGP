@@ -1,3 +1,4 @@
+import sqlite3
 # app/production_line/line_operations.py
 from app.database.db import get_db_manager
 

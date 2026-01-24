@@ -5,14 +5,26 @@ from app.database.db import get_db_manager
 from app.reports.export import export_to_pdf, export_to_excel
 from app.utils.ui_utils import get_save_filename, show_success_message
 
+from app.styles.buttons_styles import (
+    button_style, BLUE, GREEN
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class StockReportWindow(QWidget):
     def __init__(self, report_type):
         super().__init__()
         self.report_type = report_type
         self.setWindowTitle(f"Relatório de {report_type}")
+        self.setStyleSheet(window_style(LIGHT))
         self.layout = QVBoxLayout(self)
         self.setup_filters()
         self.setup_buttons()
+        self.apply_styles_to_filters()
 
     def setup_filters(self):
         self.filters_layout = QFormLayout()
@@ -54,8 +66,14 @@ class StockReportWindow(QWidget):
 
     def setup_buttons(self):
         self.generate_button = QPushButton("Gerar Relatório")
+        self.generate_button.setStyleSheet(button_style(BLUE))
         self.generate_button.clicked.connect(self.generate_report)
         self.layout.addWidget(self.generate_button)
+
+    def apply_styles_to_filters(self):
+        for widget in self.filters.values():
+            if isinstance(widget, (QLineEdit, QDateEdit)):
+                widget.setStyleSheet(input_style(DEFAULTINPUT))
 
     def generate_report(self):
         if self.report_type == "Entradas (Compras)":
@@ -77,6 +95,7 @@ class StockReportWindow(QWidget):
     def show_preview(self, headers, data):
         dialog = QDialog(self)
         dialog.setWindowTitle("Pré-visualização do Relatório")
+        dialog.setStyleSheet(window_style(LIGHT))
         dialog.setMinimumSize(800, 600)
         layout = QVBoxLayout(dialog)
         
@@ -93,6 +112,7 @@ class StockReportWindow(QWidget):
         layout.addWidget(table)
         
         save_button = QPushButton("Salvar")
+        save_button.setStyleSheet(button_style(GREEN))
         save_button.clicked.connect(lambda: self.save_report(headers, data))
         layout.addWidget(save_button)
         

@@ -10,6 +10,19 @@ from app.utils.ui_utils import show_error_message
 from app.sales.ui_sale_edit_window import SaleEditWindow
 from app.utils.date_utils import format_date_for_display
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class SaleSearchWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -18,6 +31,7 @@ class SaleSearchWindow(QWidget):
         self.edit_window = None
         self.setWindowTitle("Pesquisa de Saídas de Produto")
         self.setGeometry(200, 200, 800, 600)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         self.load_sales()
 
@@ -27,12 +41,16 @@ class SaleSearchWindow(QWidget):
         search_group = QGroupBox("Pesquisa")
         search_layout = QHBoxLayout()
         self.search_field = QComboBox()
+        self.search_field.setStyleSheet(search_field_style(DEFAULT))
         self.search_field.addItems(["ID", "Status"])
         self.search_term = QLineEdit()
+        self.search_term.setStyleSheet(input_style(DEFAULTINPUT))
         self.search_term.returnPressed.connect(self.load_sales)
         search_button = QPushButton("Buscar")
+        search_button.setStyleSheet(button_style(BLUE))
         search_button.clicked.connect(self.load_sales)
         new_button = QPushButton("Nova Saída")
+        new_button.setStyleSheet(button_style(GREEN))
         new_button.clicked.connect(self.open_new_sale_window)
         
         search_layout.addWidget(self.search_field)
@@ -57,7 +75,6 @@ class SaleSearchWindow(QWidget):
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
         self.table_view.setSortingEnabled(True)
-        self.table_view.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         self.table_view.doubleClicked.connect(self.open_edit_sale_window)
         
         results_layout.addWidget(self.table_view)

@@ -9,6 +9,13 @@ from app.production_line.ui_line_edit_window import LineEditWindow
 from app.production.ui_order_window import ProductionOrderWindow
 from app.production import order_operations
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+
 class LineListWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -17,6 +24,7 @@ class LineListWindow(QWidget):
         self.order_window = None
         self.setWindowTitle("Linhas de Produção")
         self.setGeometry(200, 200, 700, 500)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         self.load_lines()
 
@@ -26,13 +34,16 @@ class LineListWindow(QWidget):
         # Action Buttons
         action_layout = QHBoxLayout()
         self.new_button = QPushButton("Nova Linha")
+        self.new_button.setStyleSheet(button_style(GREEN))
         self.new_button.clicked.connect(self.open_edit_window)
         self.edit_button = QPushButton("Editar Linha")
+        self.edit_button.setStyleSheet(button_style(YELLOW))
         self.edit_button.clicked.connect(self.open_edit_window_for_selected)
         self.delete_button = QPushButton("Excluir Linha")
+        self.delete_button.setStyleSheet(button_style(RED))
         self.delete_button.clicked.connect(self.delete_selected_line)
         self.produce_button = QPushButton("Produzir")
-        self.produce_button.setStyleSheet("background-color: #4CAF50; color: white;")
+        self.produce_button.setStyleSheet(button_style(GREEN))
         self.produce_button.clicked.connect(self.produce_from_selected_line)
         
         action_layout.addWidget(self.new_button)

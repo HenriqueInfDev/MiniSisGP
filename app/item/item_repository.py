@@ -1,3 +1,4 @@
+import sqlite3
 # app/item/item_repository.py
 from app.database.db import get_db_manager
 
@@ -15,7 +16,7 @@ class ItemRepository:
             )
             self.connection.commit()
             return cursor.lastrowid
-        except self.connection.IntegrityError:
+        except sqlite3.IntegrityError:
             self.connection.rollback()
             return None
 
@@ -48,7 +49,7 @@ class ItemRepository:
             )
             self.connection.commit()
             return True
-        except self.connection.IntegrityError:
+        except sqlite3.IntegrityError:
             self.connection.rollback()
             return False
 

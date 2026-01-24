@@ -86,14 +86,16 @@ def window_style(color):
     }}
 
     QLineEdit,
-    QDoubleSpinBox {{
+    QDoubleSpinBox,
+    QTextEdit {{
         background-color: {color['surface']};
         border: 1px solid {color['border']};
         border-radius: 4px;
     }}
 
     QLineEdit:focus,
-    QDoubleSpinBox:focus {{
+    QDoubleSpinBox:focus,
+    QTextEdit:focus {{
         border-color: {color['focus']};
     }}
 

@@ -9,6 +9,19 @@ from app.production_line import line_operations
 from app.item.ui_search_window import ItemSearchWindow
 from app.utils.ui_utils import NumericTableWidgetItem
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
+)
+
 class LineEditWindow(QWidget):
     def __init__(self, line_id=None, parent=None):
         super().__init__()
@@ -19,6 +32,7 @@ class LineEditWindow(QWidget):
 
         self.setWindowTitle("Cadastro de Linha de Produção")
         self.setGeometry(300, 300, 600, 500)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         if self.current_line_id:
             self.load_line_data()
@@ -30,8 +44,13 @@ class LineEditWindow(QWidget):
         form_group = QGroupBox("Dados da Linha de Produção")
         form_layout = QFormLayout()
         self.name_input = QLineEdit()
+        self.name_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.description_input = QTextEdit()
+        # QTextEdit doesn't have a specific style in input_styles, but global styles handle it partially.
+        # We can apply basic line edit style if we want similar borders.
+        self.description_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.status_combo = QComboBox()
+        self.status_combo.setStyleSheet(search_field_style(DEFAULT))
         self.status_combo.addItems(["Ativa", "Inativa"])
         form_layout.addRow("Nome:", self.name_input)
         form_layout.addRow("Descrição:", self.description_input)
@@ -55,8 +74,10 @@ class LineEditWindow(QWidget):
 
         item_buttons_layout = QHBoxLayout()
         self.add_item_button = QPushButton("Adicionar Produto")
+        self.add_item_button.setStyleSheet(button_style(GREEN))
         self.add_item_button.clicked.connect(self.open_item_search)
         self.remove_item_button = QPushButton("Remover Produto")
+        self.remove_item_button.setStyleSheet(button_style(RED))
         self.remove_item_button.clicked.connect(self.remove_item)
         item_buttons_layout.addStretch()
         item_buttons_layout.addWidget(self.add_item_button)
@@ -68,8 +89,10 @@ class LineEditWindow(QWidget):
         # Action Buttons
         action_buttons_layout = QHBoxLayout()
         self.save_button = QPushButton("Salvar")
+        self.save_button.setStyleSheet(button_style(GREEN))
         self.save_button.clicked.connect(self.save_line)
         self.cancel_button = QPushButton("Cancelar")
+        self.cancel_button.setStyleSheet(button_style(GRAY))
         self.cancel_button.clicked.connect(self.close)
         action_buttons_layout.addStretch()
         action_buttons_layout.addWidget(self.save_button)

@@ -13,6 +13,18 @@ from app.styles.buttons_styles import (
     button_style, GREEN, BLUE
 )
 
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
+)
+
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+
 def _safe_str(value):
     """Converte o valor para string, tratando None como uma string vazia."""
     return str(value) if value is not None else ""
@@ -30,6 +42,7 @@ class SupplierSearchWindow(QWidget):
         title = "Selecionar Fornecedor" if self.selection_mode else "Pesquisa de Fornecedores"
         self.setWindowTitle(title)
         self.setGeometry(200, 200, 800, 600)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         self.load_suppliers()
 
@@ -40,9 +53,11 @@ class SupplierSearchWindow(QWidget):
         search_layout = QHBoxLayout()
 
         self.search_field_combo = QComboBox()
+        self.search_field_combo.setStyleSheet(search_field_style(DEFAULT))
         self.search_field_combo.addItems(["Nome Fantasia", "Razão Social", "CNPJ"])
         
         self.search_input = QLineEdit()
+        self.search_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.search_input.returnPressed.connect(self.load_suppliers)
 
         search_button = QPushButton("Buscar")
@@ -73,7 +88,6 @@ class SupplierSearchWindow(QWidget):
         self.table_view.verticalHeader().setVisible(False)
         self.table_view.setColumnHidden(0, True)
         self.table_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.table_view.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         self.table_view.doubleClicked.connect(self.handle_double_click)
         results_layout.addWidget(self.table_view)
         results_group.setLayout(results_layout)

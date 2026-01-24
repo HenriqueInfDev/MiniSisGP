@@ -10,6 +10,16 @@ from app.item.ui_search_window import ItemSearchWindow
 from app.utils.date_utils import BRAZILIAN_DATE_FORMAT, format_qdate_for_db
 from app.utils.ui_utils import NumericTableWidgetItem
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class ProductionOrderWindow(QWidget):
     def __init__(self, op_id=None):
         super().__init__()
@@ -19,6 +29,7 @@ class ProductionOrderWindow(QWidget):
         self.search_op_window = None
         self.setWindowTitle("Ordem de Produção")
         self.setGeometry(250, 250, 800, 700)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         if self.current_op_id:
             self.load_op_data()
@@ -30,18 +41,25 @@ class ProductionOrderWindow(QWidget):
         # Header Buttons
         layout = QHBoxLayout()
         self.new_button = QPushButton("Novo")
+        self.new_button.setStyleSheet(button_style(GRAY))
         self.new_button.clicked.connect(self.new_op)
         self.save_button = QPushButton("Salvar")
+        self.save_button.setStyleSheet(button_style(GREEN))
         self.save_button.clicked.connect(self.save_op)
         self.finalize_button = QPushButton("Finalizar")
+        self.finalize_button.setStyleSheet(button_style(BLUE))
         self.finalize_button.clicked.connect(self.prompt_finalize_op)
         self.cancel_button = QPushButton("Cancelar")
+        self.cancel_button.setStyleSheet(button_style(RED))
         self.cancel_button.clicked.connect(self.cancel_op)
         self.delete_button = QPushButton("Excluir")
+        self.delete_button.setStyleSheet(button_style(RED))
         self.delete_button.clicked.connect(self.delete_op)
         self.reopen_button = QPushButton("Reabrir")
+        self.reopen_button.setStyleSheet(button_style(YELLOW))
         self.reopen_button.clicked.connect(self.reopen_op)
         self.search_button = QPushButton("Pesquisar")
+        self.search_button.setStyleSheet(button_style(BLUE))
         self.search_button.clicked.connect(self.open_op_search)
         layout.addWidget(self.new_button)
         layout.addWidget(self.save_button)
@@ -57,6 +75,7 @@ class ProductionOrderWindow(QWidget):
         self.form_layout = QFormLayout()
         self.op_id_display = QLabel("(Nova)")
         self.numero_input = QLineEdit()
+        self.numero_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.due_date_input = QDateEdit(calendarPopup=True)
         self.due_date_input.setDisplayFormat(BRAZILIAN_DATE_FORMAT)
         self.due_date_input.setDate(QDate.currentDate().addDays(7))
@@ -82,7 +101,6 @@ class ProductionOrderWindow(QWidget):
         self.items_table.verticalHeader().setVisible(False)
         self.items_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.items_table.setColumnHidden(0, True)
-        self.items_table.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         header = self.items_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -92,8 +110,10 @@ class ProductionOrderWindow(QWidget):
         layout.addWidget(self.items_table)
         buttons_layout = QHBoxLayout()
         self.add_item_button = QPushButton("Adicionar Produto")
+        self.add_item_button.setStyleSheet(button_style(GREEN))
         self.add_item_button.clicked.connect(self.open_item_search)
         self.remove_item_button = QPushButton("Remover Produto")
+        self.remove_item_button.setStyleSheet(button_style(RED))
         self.remove_item_button.clicked.connect(self.remove_item)
         buttons_layout.addStretch()
         buttons_layout.addWidget(self.add_item_button)

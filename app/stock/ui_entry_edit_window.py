@@ -13,6 +13,16 @@ from app.supplier.ui_search_window import SupplierSearchWindow
 from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
 from PySide6.QtWidgets import QStyledItemDelegate
 
+from app.styles.buttons_styles import (
+    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+)
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class SupplierDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         # Impede a criação de um editor padrão (como um QLineEdit)
@@ -39,6 +49,7 @@ class EntryEditWindow(QWidget):
         title = f"Editando Entrada #{entry_id}" if entry_id else "Nova Entrada de Insumo"
         self.setWindowTitle(title)
         self.setGeometry(250, 250, 800, 700)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
 
         if self.current_entry_id:
@@ -51,13 +62,17 @@ class EntryEditWindow(QWidget):
         
         header_layout = QHBoxLayout()
         self.save_button = QPushButton("Salvar")
+        self.save_button.setStyleSheet(button_style(GREEN))
         self.save_button.clicked.connect(self.save_entry)
         self.finalize_button = QPushButton("Finalizar Entrada")
+        self.finalize_button.setStyleSheet(button_style(BLUE))
         self.finalize_button.clicked.connect(self.finalize_entry)
         self.reopen_button = QPushButton("Reabrir Entrada")
+        self.reopen_button.setStyleSheet(button_style(YELLOW))
         self.reopen_button.clicked.connect(self.reopen_entry)
         self.reopen_button.setObjectName("reopen_button")
         self.delete_button = QPushButton("Excluir")
+        self.delete_button.setStyleSheet(button_style(RED))
         self.delete_button.clicked.connect(self.delete_entry)
         self.delete_button.setObjectName("delete_button")
         header_layout.addStretch()
@@ -79,7 +94,9 @@ class EntryEditWindow(QWidget):
         self.typing_date_input.setCalendarPopup(True)
         
         self.note_number_input = QLineEdit()
+        self.note_number_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.observacao_input = QLineEdit()
+        self.observacao_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.status_display = QLabel("Em Aberto")
 
         form.addRow("ID da Entrada:", self.entry_id_display)
@@ -99,7 +116,6 @@ class EntryEditWindow(QWidget):
         self.items_table.verticalHeader().setVisible(False)
         self.items_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.items_table.setColumnHidden(0, True)
-        self.items_table.setStyleSheet("QTableView::item:selected { background-color: #D3D3D3; color: black; }")
         header = self.items_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -115,12 +131,13 @@ class EntryEditWindow(QWidget):
         buttons_layout.addWidget(self.total_label)
         buttons_layout.addStretch()
         self.add_item_button = QPushButton("Adicionar Insumo")
+        self.add_item_button.setStyleSheet(button_style(GREEN))
         self.add_item_button.setObjectName("add_item_button")
         self.add_item_button.clicked.connect(self.open_item_search)
         self.remove_item_button = QPushButton("Remover Insumo")
+        self.remove_item_button.setStyleSheet(button_style(RED))
         self.remove_item_button.setObjectName("remove_item_button")
         self.remove_item_button.clicked.connect(self.remove_item)
-        buttons_layout.addStretch()
         buttons_layout.addWidget(self.add_item_button)
         buttons_layout.addWidget(self.remove_item_button)
         items_layout.addLayout(buttons_layout)

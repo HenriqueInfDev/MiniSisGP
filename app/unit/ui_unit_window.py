@@ -1,4 +1,4 @@
-# app/item/ui_unit_window.py
+# app/unit/ui_unit_window.py
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
     QPushButton, QTableView, QHeaderView, QAbstractItemView, QMessageBox,
@@ -13,15 +13,26 @@ from app.styles.buttons_styles import (
     button_style, GREEN, RED, YELLOW
 )
 
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
 class UnitEditDialog(QDialog):
     def __init__(self, parent=None, unit_id=None, name="", abbreviation=""):
         super().__init__(parent)
         self.unit_id = unit_id
         self.setWindowTitle("Editar Unidade" if unit_id else "Nova Unidade")
+        self.setStyleSheet(window_style(LIGHT))
         
         layout = QFormLayout(self)
         self.name_input = QLineEdit(name)
+        self.name_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.abbreviation_input = QLineEdit(abbreviation)
+        self.abbreviation_input.setStyleSheet(input_style(DEFAULTINPUT))
         layout.addRow(QLabel("Nome:"), self.name_input)
         layout.addRow(QLabel("Sigla:"), self.abbreviation_input)
         
@@ -42,6 +53,7 @@ class UnitWindow(QWidget):
         self.unit_service = UnitService()
         self.setWindowTitle("Cadastro de Unidades de Medida")
         self.setGeometry(200, 200, 500, 400)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
         self.load_units()
 

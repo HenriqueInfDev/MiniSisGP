@@ -13,6 +13,18 @@ from app.styles.buttons_styles import (
     button_style, GREEN, RED
 )
 
+from app.styles.windows_style import (
+    window_style, LIGHT
+)
+
+from app.styles.input_styles import (
+    input_style, DEFAULTINPUT
+)
+
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
+)
+
 class SupplierEditWindow(QWidget):
     def __init__(self, supplier_id=None):
         super().__init__()
@@ -23,6 +35,7 @@ class SupplierEditWindow(QWidget):
         title = f"Editando Fornecedor #{supplier_id}" if supplier_id else "Novo Fornecedor"
         self.setWindowTitle(title)
         self.setGeometry(250, 250, 600, 400)
+        self.setStyleSheet(window_style(LIGHT))
         self.setup_ui()
 
         if self.current_supplier_id:
@@ -56,23 +69,29 @@ class SupplierEditWindow(QWidget):
     def setup_identification_tab(self):
         ident_widget = QWidget()
         layout = QFormLayout(ident_widget)
-        self.razao_social_input = QLineEdit()
-        self.nome_fantasia_input = QLineEdit()
+        self.company_name_input = QLineEdit()
+        self.company_name_input.setStyleSheet(input_style(DEFAULTINPUT))
+        self.fantasy_name_input = QLineEdit()
+        self.fantasy_name_input.setStyleSheet(input_style(DEFAULTINPUT))
         
         self.cnpj_input = QLineEdit()
+        self.cnpj_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.cnpj_input.setValidator(QRegularExpressionValidator(QRegularExpression("[0-9./-]+")))
         self.cnpj_input.textChanged.connect(self.format_cnpj_cpf)
         
         self.phone_input = QLineEdit()
+        self.phone_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.phone_input.textChanged.connect(self.format_phone_number)
         
         self.email_input = QLineEdit()
+        self.email_input.setStyleSheet(input_style(DEFAULTINPUT))
         
         self.status_combo = QComboBox()
+        self.status_combo.setStyleSheet(search_field_style(DEFAULT))
         self.status_combo.addItems(["Ativo", "Inativo"])
 
-        layout.addRow("Razão Social:", self.razao_social_input)
-        layout.addRow("Nome Fantasia:", self.nome_fantasia_input)
+        layout.addRow("Razão Social:", self.company_name_input)
+        layout.addRow("Nome Fantasia:", self.fantasy_name_input)
         layout.addRow("Status:", self.status_combo)
         layout.addRow("CPF/CNPJ:", self.cnpj_input)
         layout.addRow("Telefone:", self.phone_input)
@@ -83,24 +102,31 @@ class SupplierEditWindow(QWidget):
         address_widget = QWidget()
         layout = QFormLayout(address_widget)
         self.cep_input = QLineEdit()
+        self.cep_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.cep_input.setInputMask("00000-000")
         self.cep_input.editingFinished.connect(self.fetch_address_from_cep)
         
-        self.logradouro_input = QLineEdit()
-        self.numero_input = QLineEdit()
-        self.complemento_input = QLineEdit()
-        self.bairro_input = QLineEdit()
-        self.cidade_input = QLineEdit()
+        self.street_input = QLineEdit()
+        self.street_input.setStyleSheet(input_style(DEFAULTINPUT))
+        self.number_input = QLineEdit()
+        self.number_input.setStyleSheet(input_style(DEFAULTINPUT))
+        self.complement_input = QLineEdit()
+        self.complement_input.setStyleSheet(input_style(DEFAULTINPUT))
+        self.neighborhood_input = QLineEdit()
+        self.neighborhood_input.setStyleSheet(input_style(DEFAULTINPUT))
+        self.city_input = QLineEdit()
+        self.city_input.setStyleSheet(input_style(DEFAULTINPUT))
         
         self.uf_input = QLineEdit()
+        self.uf_input.setStyleSheet(input_style(DEFAULTINPUT))
         self.uf_input.setInputMask("AA")
         
         layout.addRow("CEP:", self.cep_input)
-        layout.addRow("Logradouro:", self.logradouro_input)
-        layout.addRow("Número:", self.numero_input)
-        layout.addRow("Complemento:", self.complemento_input)
-        layout.addRow("Bairro:", self.bairro_input)
-        layout.addRow("Cidade:", self.cidade_input)
+        layout.addRow("Logradouro:", self.street_input)
+        layout.addRow("Número:", self.number_input)
+        layout.addRow("Complemento:", self.complement_input)
+        layout.addRow("Bairro:", self.neighborhood_input)
+        layout.addRow("Cidade:", self.city_input)
         layout.addRow("UF:", self.uf_input)
         self.tab_widget.addTab(address_widget, "Endereço")
 
@@ -166,11 +192,11 @@ class SupplierEditWindow(QWidget):
                 if response.status_code == 200:
                     data = response.json()
                     if not data.get("erro"):
-                        self.logradouro_input.setText(data.get("logradouro", ""))
-                        self.bairro_input.setText(data.get("bairro", ""))
-                        self.cidade_input.setText(data.get("localidade", ""))
+                        self.street_input.setText(data.get("logradouro", ""))
+                        self.neighborhood_input.setText(data.get("bairro", ""))
+                        self.city_input.setText(data.get("localidade", ""))
                         self.uf_input.setText(data.get("uf", ""))
-                        self.numero_input.setFocus()
+                        self.number_input.setFocus()
             except requests.RequestException:
                 show_error_message(self, "Error", "Não foi possível buscar o CEP. Verifique sua conexão com a internet.")
 
@@ -178,35 +204,35 @@ class SupplierEditWindow(QWidget):
         response = self.supplier_service.get_supplier_by_id(self.current_supplier_id)
         if response["success"]:
             supplier = response["data"]
-            self.razao_social_input.setText(supplier['RAZAO_SOCIAL'])
-            self.nome_fantasia_input.setText(supplier['NOME_FANTASIA'])
+            self.company_name_input.setText(supplier['RAZAO_SOCIAL'])
+            self.fantasy_name_input.setText(supplier['NOME_FANTASIA'])
             self.status_combo.setCurrentText(supplier['STATUS'])
             self.cnpj_input.setText(supplier['CNPJ'])
             self.phone_input.setText(supplier['TELEFONE'])
             self.email_input.setText(supplier['EMAIL'])
-            self.logradouro_input.setText(supplier['LOGRADOURO'])
-            self.numero_input.setText(supplier['NUMERO'])
-            self.complemento_input.setText(supplier['COMPLEMENTO'])
-            self.bairro_input.setText(supplier['BAIRRO'])
-            self.cidade_input.setText(supplier['CIDADE'])
+            self.street_input.setText(supplier['LOGRADOURO'])
+            self.number_input.setText(supplier['NUMERO'])
+            self.complement_input.setText(supplier['COMPLEMENTO'])
+            self.neighborhood_input.setText(supplier['BAIRRO'])
+            self.city_input.setText(supplier['CIDADE'])
             self.uf_input.setText(supplier['UF'])
             self.cep_input.setText(supplier['CEP'])
         else:
             show_error_message(self, "Error", response["message"])
 
     def save_supplier(self):
-        razao_social = self.razao_social_input.text()
-        nome_fantasia = self.nome_fantasia_input.text()
+        razao_social = self.company_name_input.text()
+        nome_fantasia = self.fantasy_name_input.text()
         status = self.status_combo.currentText()
         cnpj = self.cnpj_input.text()
         phone = self.phone_input.text()
         email = self.email_input.text()
         address = {
-            'logradouro': self.logradouro_input.text(),
-            'numero': self.numero_input.text(),
-            'complemento': self.complemento_input.text(),
-            'bairro': self.bairro_input.text(),
-            'cidade': self.cidade_input.text(),
+            'logradouro': self.street_input.text(),
+            'numero': self.number_input.text(),
+            'complemento': self.complement_input.text(),
+            'bairro': self.neighborhood_input.text(),
+            'cidade': self.city_input.text(),
             'uf': self.uf_input.text(),
             'cep': self.cep_input.text()
         }

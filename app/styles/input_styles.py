@@ -7,7 +7,7 @@ DEFAULTINPUT = {
 def input_style(color):
     """Retorna QSS padrão para botões"""
     return f"""
-    QLineEdit {{
+    QLineEdit, QTextEdit {{
         border-radius: {color['border-radius']};
         padding: {color['padding']};
         font-weight: {color['font-weight']};
