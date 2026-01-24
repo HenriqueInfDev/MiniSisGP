@@ -23,6 +23,23 @@ def window_style(color):
         background-color: {color['background']};
         color: {color['text-color']};
         font-family: "Segoe UI", "Inter", "Arial";
+    }}
+
+    QLabel, 
+    QPushButton, 
+    QLineEdit, 
+    QComboBox, 
+    QDoubleSpinBox, 
+    QDateEdit, 
+    QDateTimeEdit, 
+    QTextEdit, 
+    QTableWidget, 
+    QTableView, 
+    QMenuBar, 
+    QMenu, 
+    QGroupBox, 
+    QTabBar::tab, 
+    QHeaderView::section {{
         font-size: 14px;
     }}
 
@@ -87,7 +104,9 @@ def window_style(color):
 
     QLineEdit,
     QDoubleSpinBox,
-    QTextEdit {{
+    QTextEdit,
+    QDateEdit,
+    QDateTimeEdit {{
         background-color: {color['surface']};
         border: 1px solid {color['border']};
         border-radius: 4px;
@@ -95,7 +114,9 @@ def window_style(color):
 
     QLineEdit:focus,
     QDoubleSpinBox:focus,
-    QTextEdit:focus {{
+    QTextEdit:focus,
+    QDateEdit:focus,
+    QDateTimeEdit:focus {{
         border-color: {color['focus']};
     }}
 

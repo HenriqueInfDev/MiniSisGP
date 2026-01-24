@@ -11,6 +11,7 @@ def input_style(color):
         border-radius: {color['border-radius']};
         padding: {color['padding']};
         font-weight: {color['font-weight']};
+        font-size: 14px;
     }}
     """
 
@@ -20,6 +21,7 @@ def doublespinbox_style(color):
         border-radius: {color['border-radius']};
         padding: {color['padding']};
         font-weight: {color['font-weight']};
+        font-size: 14px;
         padding-right: 20px; /* espaço para os botões */
     }}
 

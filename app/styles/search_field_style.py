@@ -10,6 +10,7 @@ def search_field_style(c):
     QComboBox {{
         padding: {c['padding']};
         font-weight: {c['font-weight']};
+        font-size: 14px;
         border: 1px solid {c['border-color']};
         border-radius: {c['border-radius']};
         background-color: white;

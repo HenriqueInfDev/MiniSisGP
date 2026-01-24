@@ -51,6 +51,7 @@ def button_style(color):
         border-radius: 6px;
         padding: 6px 12px;
         font-weight: 500;
+        font-size: 14px;
     }}
 
     QPushButton:hover {{
