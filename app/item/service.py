@@ -1,9 +1,11 @@
 # app/item/service.py
 from app.item.item_repository import ItemRepository
+from app.unit.unit_service import UnitService
 
 class ItemService:
     def __init__(self):
         self.item_repository = ItemRepository()
+        self.unit_service = UnitService()
 
     def add_item(self, codigo_interno, description, item_type, unit_id, id_fornecedor_padrao):
         if not all([description, item_type, unit_id]):
@@ -36,11 +38,7 @@ class ItemService:
             return {"success": False, "message": f"Erro ao buscar item: {e}"}
 
     def list_units(self):
-        try:
-            units = self.item_repository.list_units()
-            return {"success": True, "data": units}
-        except Exception as e:
-            return {"success": False, "message": f"Erro ao listar unidades: {e}"}
+        return self.unit_service.get_all_units()
 
     def update_item(self, item_id, codigo_interno, description, item_type, unit_id, id_fornecedor_padrao):
         if not all([item_id, description, item_type, unit_id]):

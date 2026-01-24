@@ -7,7 +7,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from app.production_line import line_operations
 from app.item.ui_search_window import ItemSearchWindow
-from app.utils.ui_utils import NumericTableWidgetItem
+from app.utils.ui_utils import (
+    NumericTableWidgetItem, show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 
 from app.styles.buttons_styles import (
     button_style, GREEN, BLUE, RED, YELLOW, GRAY
@@ -117,7 +120,7 @@ class LineEditWindow(QWidget):
         status = self.status_combo.currentText()
         
         if not name:
-            QMessageBox.warning(self, "Atenção", "O nome da linha de produção é obrigatório.")
+            show_warning_message(self, "Atenção", "O nome da linha de produção é obrigatório.")
             return
 
         items = []
@@ -136,12 +139,12 @@ class LineEditWindow(QWidget):
             message = "Linha de produção criada com sucesso." if success else "Falha ao criar a linha de produção."
 
         if success:
-            QMessageBox.information(self, "Sucesso", message)
+            show_success_message(self, "Sucesso", message)
             if self.parent:
                 self.parent.load_lines() # Refresh parent list
             self.close()
         else:
-            QMessageBox.critical(self, "Erro", message)
+            show_error_message(self, "Erro", message)
 
     def open_item_search(self):
         if self.search_item_window is None:
@@ -183,7 +186,7 @@ class LineEditWindow(QWidget):
     def remove_item(self):
         selected_rows = self.items_table.selectionModel().selectedRows()
         if not selected_rows:
-            QMessageBox.warning(self, "Atenção", "Selecione um produto para remover.")
+            show_warning_message(self, "Atenção", "Selecione um produto para remover.")
             return
         
         for index in sorted([idx.row() for idx in selected_rows], reverse=True):

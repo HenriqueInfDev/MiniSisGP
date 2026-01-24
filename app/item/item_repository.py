@@ -35,11 +35,6 @@ class ItemRepository:
         cursor.execute("SELECT * FROM ITEM WHERE ID = ?", (item_id,))
         return cursor.fetchone()
 
-    def list_units(self):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT ID, NOME, SIGLA FROM UNIDADE ORDER BY NOME")
-        return cursor.fetchall()
-
     def update(self, item_id, codigo_interno, description, item_type, unit_id, id_fornecedor_padrao):
         cursor = self.connection.cursor()
         try:
@@ -83,11 +78,21 @@ class ItemRepository:
         cursor = self.connection.cursor()
         query = "SELECT i.ID, i.CODIGO_INTERNO, i.DESCRICAO, i.TIPO_ITEM, u.SIGLA, i.SALDO_ESTOQUE, i.CUSTO_MEDIO FROM ITEM i JOIN UNIDADE u ON i.ID_UNIDADE = u.ID"
         
+        allowed_types = {
+            "ID": "i.ID",
+            "CODIGO_INTERNO": "i.CODIGO_INTERNO",
+            "DESCRICAO": "i.DESCRICAO"
+        }
+        
+        column = allowed_types.get(search_type)
+        if not column:
+            return [] # Ou raise ValueError
+
         if search_type == "ID":
-            query += " WHERE i.ID = ?"
+            query += f" WHERE {column} = ?"
             params = (search_text,)
         else:
-            query += f" WHERE i.{search_type} LIKE ?"
+            query += f" WHERE {column} LIKE ?"
             params = (f"%{search_text}%",)
             
         query += " ORDER BY i.DESCRICAO"

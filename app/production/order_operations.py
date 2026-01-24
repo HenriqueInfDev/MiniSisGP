@@ -137,15 +137,16 @@ def check_stock_for_production(product_id, quantity):
 def consume_stock_for_production(op_id, product_id, quantity):
     conn = get_db_manager().get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT ID_INSUMO, QUANTIDADE, CUSTO_MEDIO FROM COMPOSICAO C JOIN ITEM I ON C.ID_INSUMO = I.ID WHERE C.ID_PRODUTO = ?", (product_id,))
+    cursor.execute("SELECT ID_INSUMO, QUANTIDADE, I.CUSTO_MEDIO FROM COMPOSICAO C JOIN ITEM I ON C.ID_INSUMO = I.ID WHERE C.ID_PRODUTO = ?", (product_id,))
     composition = cursor.fetchall()
     total_cost = 0
     for insumo in composition:
         consumed_quantity = insumo['QUANTIDADE'] * quantity
-        cost = insumo['CUSTO_MEDIO'] * consumed_quantity
+        unit_cost = insumo['CUSTO_MEDIO']
+        cost = unit_cost * consumed_quantity
         total_cost += cost
         cursor.execute("UPDATE ITEM SET SALDO_ESTOQUE = SALDO_ESTOQUE - ? WHERE ID = ?", (consumed_quantity, insumo['ID_INSUMO']))
-        cursor.execute("INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, ID_ORDEM_PRODUCAO, DATA_MOVIMENTO) VALUES (?, 'Saída por OP', ?, ?, date('now'))", (insumo['ID_INSUMO'], consumed_quantity, op_id))
+        cursor.execute("INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, VALOR_UNITARIO, ID_ORDEM_PRODUCAO, DATA_MOVIMENTO) VALUES (?, 'Saída por OP', ?, ?, ?, date('now'))", (insumo['ID_INSUMO'], consumed_quantity, unit_cost, op_id))
     return total_cost
 
 def increase_product_stock(op_id, product_id, quantity, cost):
@@ -163,8 +164,9 @@ def increase_product_stock(op_id, product_id, quantity, cost):
     else:
         new_avg_cost = current_avg_cost
 
+    unit_cost = cost / quantity if quantity > 0 else 0
     cursor.execute("UPDATE ITEM SET SALDO_ESTOQUE = ?, CUSTO_MEDIO = ? WHERE ID = ?", (new_stock, new_avg_cost, product_id))
-    cursor.execute("INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, ID_ORDEM_PRODUCAO, DATA_MOVIMENTO) VALUES (?, 'Entrada por OP', ?, ?, date('now'))", (product_id, quantity, op_id))
+    cursor.execute("INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, VALOR_UNITARIO, ID_ORDEM_PRODUCAO, DATA_MOVIMENTO) VALUES (?, 'Entrada por OP', ?, ?, ?, date('now'))", (product_id, quantity, unit_cost, op_id))
 
 def return_stock_for_production(op_id, product_id, quantity):
     conn = get_db_manager().get_connection()
@@ -174,6 +176,8 @@ def return_stock_for_production(op_id, product_id, quantity):
     for insumo in composition:
         returned_quantity = insumo['QUANTIDADE'] * quantity
         cursor.execute("UPDATE ITEM SET SALDO_ESTOQUE = SALDO_ESTOQUE + ? WHERE ID = ?", (returned_quantity, insumo['ID_INSUMO']))
+        # We should probably also record a movement for return, but the original code didn't do it clearly for all cases.
+        # Original code used 'Retorno por OP' in some places.
         cursor.execute("INSERT INTO MOVIMENTO (ID_ITEM, TIPO_MOVIMENTO, QUANTIDADE, ID_ORDEM_PRODUCAO, DATA_MOVIMENTO) VALUES (?, 'Retorno por OP', ?, ?, date('now'))", (insumo['ID_INSUMO'], returned_quantity, op_id))
     conn.commit()
 
@@ -236,14 +240,25 @@ def delete_op(op_id):
         
         if status == 'Concluída':
             produced_quantity = op_master['QUANTIDADE_PRODUZIDA']
-            total_cost = op_master['CUSTO_TOTAL']
-
-            if produced_quantity and produced_quantity > 0 and total_cost is not None:
+            
+            if produced_quantity and produced_quantity > 0:
                 for item in op_details['items']:
                     product_id = item['ID_PRODUTO']
                     
+                    # Get production cost for this specific item from MOVIMENTO
+                    cursor.execute(
+                        "SELECT (QUANTIDADE * VALOR_UNITARIO) as total_item_cost FROM MOVIMENTO WHERE ID_ORDEM_PRODUCAO = ? AND ID_ITEM = ? AND TIPO_MOVIMENTO = 'Entrada por OP'",
+                        (op_id, product_id)
+                    )
+                    row = cursor.fetchone()
+                    if row:
+                        item_production_cost = row['total_item_cost']
+                    else:
+                        # Fallback for old records without VALOR_UNITARIO in MOVIMENTO
+                        item_production_cost = op_master['CUSTO_TOTAL'] / len(op_details['items']) if op_master['CUSTO_TOTAL'] else 0
+
                     # Revert stock and cost for the produced item
-                    _reverse_production_stock_update(cursor, product_id, produced_quantity, total_cost)
+                    _reverse_production_stock_update(cursor, product_id, produced_quantity, item_production_cost)
                     
                     # Return consumed components to stock
                     cursor.execute("SELECT ID_INSUMO, QUANTIDADE FROM COMPOSICAO WHERE ID_PRODUTO = ?", (product_id,))

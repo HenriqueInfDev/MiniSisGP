@@ -7,7 +7,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtCore import QRegularExpression, Qt
 from app.supplier.service import SupplierService
-from app.utils.ui_utils import show_error_message
+from app.utils.ui_utils import (
+    show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 
 from app.styles.buttons_styles import (
     button_style, GREEN, RED
@@ -243,7 +246,7 @@ class SupplierEditWindow(QWidget):
             response = self.supplier_service.add_supplier(razao_social, nome_fantasia, cnpj, phone, email, address, status)
         
         if response["success"]:
-            QMessageBox.information(self, "Sucesso", response["message"])
+            show_success_message(self, "Sucesso", response["message"])
             if not self.current_supplier_id and response.get("data"):
                 self.current_supplier_id = response["data"]
                 self.setWindowTitle(f"Editando Fornecedor #{self.current_supplier_id}")
@@ -255,11 +258,11 @@ class SupplierEditWindow(QWidget):
             show_error_message(self, "Error", "Nenhum fornecedor carregado para excluir.")
             return
 
-        reply = QMessageBox.question(self, "Confirmar Exclusão", "Tem certeza que deseja excluir este fornecedor?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = show_confirmation_message(self, "Confirmar Exclusão", "Tem certeza que deseja excluir este fornecedor?")
         if reply == QMessageBox.Yes:
             response = self.supplier_service.delete_supplier(self.current_supplier_id)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
                 self.close()
             else:
                 show_error_message(self, "Error", response["message"])

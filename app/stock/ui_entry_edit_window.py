@@ -10,7 +10,10 @@ from app.supplier.service import SupplierService
 from app.utils.date_utils import BRAZILIAN_DATE_FORMAT, format_qdate_for_db, format_qdatetime_for_db
 from app.item.ui_search_window import ItemSearchWindow
 from app.supplier.ui_search_window import SupplierSearchWindow
-from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
+from app.utils.ui_utils import (
+    NumericTableWidgetItem, show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 from PySide6.QtWidgets import QStyledItemDelegate
 
 from app.styles.buttons_styles import (
@@ -184,7 +187,7 @@ class EntryEditWindow(QWidget):
         if self.current_entry_id:
             response = self.stock_service.update_entry(self.current_entry_id, entry_date, typing_date, note_number, observacao, items)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
             else:
                 show_error_message(self, "Error", response["message"])
         else:
@@ -198,7 +201,7 @@ class EntryEditWindow(QWidget):
                 if update_response["success"]:
                     self.setWindowTitle(f"Editando Entrada #{self.current_entry_id}")
                     self.entry_id_display.setText(str(self.current_entry_id))
-                    QMessageBox.information(self, "Sucesso", "Nota de entrada criada e salva com sucesso.")
+                    show_success_message(self, "Sucesso", "Nota de entrada criada e salva com sucesso.")
                 else:
                     # Se o update falhar, informa o utilizador. O cabeçalho foi criado.
                     show_error_message(self, "Aviso", f"O cabeçalho da nota foi criado (ID: {self.current_entry_id}), mas falhou ao salvar os itens: {update_response['message']}")
@@ -259,7 +262,7 @@ class EntryEditWindow(QWidget):
     def add_item_from_search(self, item_data):
         for row in range(self.items_table.rowCount()):
             if int(self.items_table.item(row, 0).text()) == item_data['ID']:
-                QMessageBox.warning(self, "Atenção", "Este insumo já está na lista.")
+                show_warning_message(self, "Atenção", "Este insumo já está na lista.")
                 return
 
         item_details = self.stock_service.get_item_details(item_data['ID'])
@@ -281,7 +284,7 @@ class EntryEditWindow(QWidget):
         self.add_item_to_table(item_to_add)
 
         if not item_to_add['ID_FORNECEDOR']:
-            QMessageBox.information(self, "Atenção", f"O insumo '{item_to_add['DESCRICAO']}' não possui um fornecedor padrão. Por favor, selecione um manualmente.")
+            show_success_message(self, "Atenção", f"O insumo '{item_to_add['DESCRICAO']}' não possui um fornecedor padrão. Por favor, selecione um manualmente.")
 
     def add_item_to_table(self, item, is_loading=False):
         self.items_table.blockSignals(True)
@@ -318,7 +321,7 @@ class EntryEditWindow(QWidget):
     def remove_item(self):
         rows = self.items_table.selectionModel().selectedRows()
         if not rows:
-            QMessageBox.warning(self, "Atenção", "Selecione um insumo para remover.")
+            show_warning_message(self, "Atenção", "Selecione um insumo para remover.")
             return
         for index in sorted([r.row() for r in rows], reverse=True):
             self.items_table.removeRow(index)
@@ -388,17 +391,16 @@ class EntryEditWindow(QWidget):
         if not self.current_entry_id:
             return
 
-        reply = QMessageBox.question(
+        reply = show_confirmation_message(
             self, "Confirmar Exclusão", 
             "Você tem certeza que deseja excluir esta nota de entrada?\n\n"
-            "Esta ação não pode ser desfeita.",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            "Esta ação não pode ser desfeita."
         )
 
         if reply == QMessageBox.Yes:
             response = self.stock_service.delete_entry(self.current_entry_id)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
                 self.close()  # Fecha a janela de edição após a exclusão
             else:
                 show_error_message(self, "Erro", response["message"])
@@ -407,18 +409,17 @@ class EntryEditWindow(QWidget):
         if not self.current_entry_id:
             return
 
-        reply = QMessageBox.question(
+        reply = show_confirmation_message(
             self, "Confirmar Reabertura", 
             "Você tem certeza que deseja reabrir esta entrada?\n\n"
             "Esta ação irá estornar o lançamento de estoque e recalcular o custo médio dos insumos.\n"
-            "A nota voltará ao status 'Em Aberto' para edição.",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            "A nota voltará ao status 'Em Aberto' para edição."
         )
 
         if reply == QMessageBox.Yes:
             response = self.stock_service.reopen_entry(self.current_entry_id)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
                 self.load_entry_data()  # Recarrega os dados para refletir o novo status
             else:
                 show_error_message(self, "Erro", response["message"])
@@ -454,16 +455,15 @@ class EntryEditWindow(QWidget):
                 show_error_message(self, "Erro de Validação", f"O valor unitário do item '{self.items_table.item(row, 1).text()}' deve ser maior que zero.")
                 return
             
-        reply = QMessageBox.question(
-            self, "Confirmar Finalização", "Você tem certeza que deseja finalizar esta entrada?\nEsta ação atualizará o estoque e o custo dos insumos e não poderá ser desfeita.",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        reply = show_confirmation_message(
+            self, "Confirmar Finalização", "Você tem certeza que deseja finalizar esta entrada?\nEsta ação atualizará o estoque e o custo dos insumos e não poderá ser desfeita."
         )
         
         if reply == QMessageBox.Yes:
             self.save_entry() 
             response = self.stock_service.finalize_entry(self.current_entry_id)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
                 self.load_entry_data()
             else:
                 show_error_message(self, "Error", response["message"])

@@ -7,7 +7,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from app.item.service import ItemService
 from app.production import composition_operations
-from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
+from app.utils.ui_utils import (
+    NumericTableWidgetItem, show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message, show_custom_confirmation
+)
 
 from app.styles.buttons_styles import (
     button_style, GREEN, BLUE, RED, GRAY, YELLOW
@@ -83,12 +86,16 @@ class ItemFormWindow(QWidget):
     def closeEvent(self, event):
         """Sobrescreve o evento de fechar a janela para verificar alterações."""
         if self.has_unsaved_changes:
-            reply = QMessageBox.question(
+            buttons_config = [
+                {'text': 'Salvar', 'role': QMessageBox.AcceptRole, 'style': GREEN, 'result': QMessageBox.Save},
+                {'text': 'Descartar', 'role': QMessageBox.DestructiveRole, 'style': RED, 'result': QMessageBox.Discard},
+                {'text': 'Cancelar', 'role': QMessageBox.RejectRole, 'style': GRAY, 'result': QMessageBox.Cancel}
+            ]
+            reply = show_custom_confirmation(
                 self,
                 'Alterações Não Salvas',
                 'Você tem alterações não salvas. Deseja salvá-las antes de sair?',
-                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                QMessageBox.Save
+                buttons_config
             )
 
             if reply == QMessageBox.Save:
@@ -329,12 +336,12 @@ class ItemFormWindow(QWidget):
     def add_update_composition_item(self):
         """Adiciona ou atualiza um item na tabela de composição."""
         if not self.selected_material:
-            QMessageBox.warning(self, "Atenção", "Nenhum insumo selecionado.")
+            show_warning_message(self, "Atenção", "Nenhum insumo selecionado.")
             return
 
         quantity = self.quantity_spinbox.value()
         if quantity <= 0:
-            QMessageBox.warning(self, "Atenção", "A quantidade deve ser maior que zero.")
+            show_warning_message(self, "Atenção", "A quantidade deve ser maior que zero.")
             return
 
         material_id = self.selected_material['ID']
@@ -344,7 +351,7 @@ class ItemFormWindow(QWidget):
             self.current_item_id, material_id
         )
         if not is_valid:
-            QMessageBox.warning(self, "Erro de Validação", error_message)
+            show_warning_message(self, "Erro de Validação", error_message)
             return
             
         # Verifica se o item já está na tabela (para atualização)
@@ -379,7 +386,7 @@ class ItemFormWindow(QWidget):
         """Carrega um item da tabela de volta no formulário para edição."""
         selected_rows = self.composition_table.selectionModel().selectedRows()
         if not selected_rows:
-            QMessageBox.warning(self, "Atenção", "Selecione um item na tabela para editar.")
+            show_warning_message(self, "Atenção", "Selecione um item na tabela para editar.")
             return
             
         selected_row = selected_rows[0].row()
@@ -402,7 +409,7 @@ class ItemFormWindow(QWidget):
         """Remove o item selecionado da tabela de composição."""
         selected_rows = self.composition_table.selectionModel().selectedRows()
         if not selected_rows:
-            QMessageBox.warning(self, "Atenção", "Selecione um item na tabela para remover.")
+            show_warning_message(self, "Atenção", "Selecione um item na tabela para remover.")
             return
             
         # Remove em ordem reversa para não bagunçar os índices
@@ -493,7 +500,7 @@ class ItemFormWindow(QWidget):
         supplier_id = self.selected_supplier_id
 
         if not description or unit_id is None:
-            QMessageBox.warning(self, "Atenção", "Descrição e Unidade são obrigatórios.")
+            show_warning_message(self, "Atenção", "Descrição e Unidade são obrigatórios.")
             return
 
         # Salva o item principal
@@ -520,28 +527,26 @@ class ItemFormWindow(QWidget):
             
             composition_operations.update_composition(self.current_item_id, new_composition)
         
-        QMessageBox.information(self, "Sucesso", "Item salvo com sucesso!")
+        show_success_message(self, "Sucesso", "Item salvo com sucesso!")
         self.setWindowTitle(f"Editando Item #{self.current_item_id}")
         self.has_unsaved_changes = False
 
     def delete_item(self):
         """Lida com a exclusão do item atual."""
         if self.current_item_id is None:
-            QMessageBox.warning(self, "Atenção", "Nenhum item carregado para excluir.")
+            show_warning_message(self, "Atenção", "Nenhum item carregado para excluir.")
             return
 
-        reply = QMessageBox.question(
+        reply = show_confirmation_message(
             self,
             'Confirmar Exclusão',
-            f"Você tem certeza que deseja excluir o item #{self.current_item_id}?\nEsta ação não pode ser desfeita.",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            f"Você tem certeza que deseja excluir o item #{self.current_item_id}?\nEsta ação não pode ser desfeita."
         )
 
         if reply == QMessageBox.Yes:
             response = self.item_service.delete_item(self.current_item_id)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
                 self.has_unsaved_changes = False # Para evitar o prompt de salvar ao fechar
                 self.close()
             else:

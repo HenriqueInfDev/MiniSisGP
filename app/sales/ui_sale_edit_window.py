@@ -7,7 +7,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QDate, Qt
 from app.sales.sale_service import SaleService
 from app.item.ui_search_window import ItemSearchWindow
-from app.utils.ui_utils import NumericTableWidgetItem, show_error_message
+from app.utils.ui_utils import (
+    NumericTableWidgetItem, show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 from app.utils.date_utils import BRAZILIAN_DATE_FORMAT, format_qdate_for_db
 
 from app.styles.buttons_styles import (
@@ -136,7 +139,7 @@ class SaleEditWindow(QWidget):
                 self.sale_id_display.setText(str(self.current_sale_id))
 
         if response["success"]:
-            QMessageBox.information(self, "Sucesso", response["message"])
+            show_success_message(self, "Sucesso", response["message"])
         else:
             show_error_message(self, "Erro", response["message"])
 
@@ -175,7 +178,7 @@ class SaleEditWindow(QWidget):
     def add_item_from_search(self, item_data):
         for row in range(self.items_table.rowCount()):
             if int(self.items_table.item(row, 0).text()) == item_data['ID']:
-                QMessageBox.warning(self, "Atenção", "Este produto já está na lista.")
+                show_warning_message(self, "Atenção", "Este produto já está na lista.")
                 return
         
         item_to_add = {
@@ -207,7 +210,7 @@ class SaleEditWindow(QWidget):
     def remove_item(self):
         rows = self.items_table.selectionModel().selectedRows()
         if not rows:
-            QMessageBox.warning(self, "Atenção", "Selecione um produto para remover.")
+            show_warning_message(self, "Atenção", "Selecione um produto para remover.")
             return
         for index in sorted([r.row() for r in rows], reverse=True):
             self.items_table.removeRow(index)
@@ -265,15 +268,14 @@ class SaleEditWindow(QWidget):
             show_error_message(self, "Erro", "Salve a saída antes de finalizá-la.")
             return
 
-        reply = QMessageBox.question(self, "Confirmar Finalização", 
-                                     "Você tem certeza que deseja finalizar esta saída?\nEsta ação atualizará o estoque e não poderá ser desfeita.",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = show_confirmation_message(self, "Confirmar Finalização", 
+                                     "Você tem certeza que deseja finalizar esta saída?\nEsta ação atualizará o estoque e não poderá ser desfeita.")
         
         if reply == QMessageBox.Yes:
             self.save_sale() 
             response = self.sale_service.finalize_sale(self.current_sale_id)
             if response["success"]:
-                QMessageBox.information(self, "Sucesso", response["message"])
+                show_success_message(self, "Sucesso", response["message"])
                 self.load_sale_data()
             else:
                 show_error_message(self, "Erro", response["message"])

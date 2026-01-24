@@ -8,7 +8,10 @@ from PySide6.QtCore import QDate, Qt
 from app.production import order_operations
 from app.item.ui_search_window import ItemSearchWindow
 from app.utils.date_utils import BRAZILIAN_DATE_FORMAT, format_qdate_for_db
-from app.utils.ui_utils import NumericTableWidgetItem
+from app.utils.ui_utils import (
+    NumericTableWidgetItem, show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 
 from app.styles.buttons_styles import (
     button_style, GREEN, BLUE, RED, YELLOW, GRAY
@@ -143,25 +146,25 @@ class ProductionOrderWindow(QWidget):
         numero = self.numero_input.text()
         due_date = format_qdate_for_db(self.due_date_input.date())
         if self.items_table.rowCount() == 0:
-            QMessageBox.warning(self, "Atenção", "Adicione pelo menos um produto.")
+            show_warning_message(self, "Atenção", "Adicione pelo menos um produto.")
             return
         items = [{'id_produto': int(self.items_table.item(r, 0).text()),
                   'quantidade': float(self.items_table.item(r, 2).text())}
                  for r in range(self.items_table.rowCount())]
         if self.current_op_id:
             if order_operations.update_op(self.current_op_id, numero, due_date, items):
-                QMessageBox.information(self, "Sucesso", "Ordem de Produção atualizada.")
+                show_success_message(self, "Sucesso", "Ordem de Produção atualizada.")
                 self.load_op_data()
             else:
-                QMessageBox.critical(self, "Erro", "Não foi possível atualizar a Ordem de Produção.")
+                show_error_message(self, "Erro", "Não foi possível atualizar a Ordem de Produção.")
         else:
             new_id = order_operations.create_op(numero, due_date, items)
             if new_id:
                 self.current_op_id = new_id
-                QMessageBox.information(self, "Sucesso", f"Ordem de Produção #{new_id} criada.")
+                show_success_message(self, "Sucesso", f"Ordem de Produção #{new_id} criada.")
                 self.load_op_data()
             else:
-                QMessageBox.critical(self, "Erro", "Não foi possível criar a Ordem de Produção.")
+                show_error_message(self, "Erro", "Não foi possível criar a Ordem de Produção.")
 
     def load_op_data(self):
         if not self.current_op_id: return
@@ -216,7 +219,7 @@ class ProductionOrderWindow(QWidget):
     def add_item_from_search(self, item_data):
         for row in range(self.items_table.rowCount()):
             if int(self.items_table.item(row, 0).text()) == item_data['ID']:
-                QMessageBox.information(self, "Atenção", "Este produto já está na lista.")
+                show_warning_message(self, "Atenção", "Este produto já está na lista.")
                 return
         item_data['ID_PRODUTO'] = item_data['ID']
         item_data['QUANTIDADE_PRODUZIR'] = 1.0
@@ -252,7 +255,7 @@ class ProductionOrderWindow(QWidget):
     def remove_item(self):
         rows = self.items_table.selectionModel().selectedRows()
         if not rows:
-            QMessageBox.warning(self, "Atenção", "Selecione um produto para remover.")
+            show_warning_message(self, "Atenção", "Selecione um produto para remover.")
             return
         for index in sorted([idx.row() for idx in rows], reverse=True):
             self.items_table.removeRow(index)
@@ -307,10 +310,10 @@ class ProductionOrderWindow(QWidget):
         if ok:
             success, message = order_operations.finalize_op(self.current_op_id, produced_qty)
             if success:
-                QMessageBox.information(self, "Sucesso", message)
+                show_success_message(self, "Sucesso", message)
                 self.load_op_data()
             else:
-                QMessageBox.critical(self, "Erro", message)
+                show_error_message(self, "Erro", message)
 
     def update_total_cost(self, item=None):
         total_op_cost = 0
@@ -335,17 +338,16 @@ class ProductionOrderWindow(QWidget):
         if not self.current_op_id:
             return
 
-        reply = QMessageBox.question(self, 'Cancelar Ordem de Produção',
-                                     "Tem certeza que deseja cancelar esta Ordem de Produção?",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = show_confirmation_message(self, 'Cancelar Ordem de Produção',
+                                     "Tem certeza que deseja cancelar esta Ordem de Produção?")
 
         if reply == QMessageBox.Yes:
             success, message = order_operations.cancel_op(self.current_op_id)
             if success:
-                QMessageBox.information(self, "Sucesso", message)
+                show_success_message(self, "Sucesso", message)
                 self.load_op_data()
             else:
-                QMessageBox.critical(self, "Erro", message)
+                show_error_message(self, "Erro", message)
 
     def set_read_only(self, read_only):
         self.numero_input.setReadOnly(read_only)
@@ -359,30 +361,28 @@ class ProductionOrderWindow(QWidget):
         if not self.current_op_id:
             return
 
-        reply = QMessageBox.question(self, 'Excluir Ordem de Produção',
-                                     "Tem certeza que deseja excluir esta Ordem de Produção? Esta ação não pode ser desfeita.",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = show_confirmation_message(self, 'Excluir Ordem de Produção',
+                                     "Tem certeza que deseja excluir esta Ordem de Produção? Esta ação não pode ser desfeita.")
 
         if reply == QMessageBox.Yes:
             success, message = order_operations.delete_op(self.current_op_id)
             if success:
-                QMessageBox.information(self, "Sucesso", message)
+                show_success_message(self, "Sucesso", message)
                 self.new_op()  # Clear the form after deletion
             else:
-                QMessageBox.critical(self, "Erro", message)
+                show_error_message(self, "Erro", message)
 
     def reopen_op(self):
         if not self.current_op_id:
             return
 
-        reply = QMessageBox.question(self, 'Reabrir Ordem de Produção',
-                                     "Tem certeza que deseja reabrir esta Ordem de Produção?",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = show_confirmation_message(self, 'Reabrir Ordem de Produção',
+                                     "Tem certeza que deseja reabrir esta Ordem de Produção?")
 
         if reply == QMessageBox.Yes:
             success, message = order_operations.reopen_op(self.current_op_id)
             if success:
-                QMessageBox.information(self, "Sucesso", message)
+                show_success_message(self, "Sucesso", message)
                 self.load_op_data()
             else:
-                QMessageBox.critical(self, "Erro", message)
+                show_error_message(self, "Erro", message)

@@ -8,6 +8,10 @@ from app.production_line import line_operations
 from app.production_line.ui_line_edit_window import LineEditWindow
 from app.production.ui_order_window import ProductionOrderWindow
 from app.production import order_operations
+from app.utils.ui_utils import (
+    show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 
 from app.styles.buttons_styles import (
     button_style, GREEN, BLUE, RED, YELLOW, GRAY
@@ -92,7 +96,7 @@ class LineListWindow(QWidget):
     def open_edit_window_for_selected(self):
         selected_row = self.lines_table.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "Atenção", "Selecione uma linha de produção para editar.")
+            show_warning_message(self, "Atenção", "Selecione uma linha de produção para editar.")
             return
         line_id = int(self.lines_table.item(selected_row, 0).text())
         if self.edit_window is None:
@@ -105,39 +109,38 @@ class LineListWindow(QWidget):
     def delete_selected_line(self):
         selected_row = self.lines_table.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "Atenção", "Selecione uma linha de produção para excluir.")
+            show_warning_message(self, "Atenção", "Selecione uma linha de produção para excluir.")
             return
         line_id = int(self.lines_table.item(selected_row, 0).text())
         line_name = self.lines_table.item(selected_row, 1).text()
 
-        reply = QMessageBox.question(
+        reply = show_confirmation_message(
             self, 'Confirmar Exclusão',
-            f"Tem certeza que deseja excluir a linha de produção '{line_name}'?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            f"Tem certeza que deseja excluir a linha de produção '{line_name}'?"
         )
         if reply == QMessageBox.Yes:
             if line_operations.delete_production_line(line_id):
-                QMessageBox.information(self, "Sucesso", "Linha de produção excluída.")
+                show_success_message(self, "Sucesso", "Linha de produção excluída.")
                 self.load_lines()
             else:
-                QMessageBox.critical(self, "Erro", "Não foi possível excluir a linha de produção.")
+                show_error_message(self, "Erro", "Não foi possível excluir a linha de produção.")
 
     def produce_from_selected_line(self):
         selected_row = self.lines_table.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "Atenção", "Selecione uma linha de produção para iniciar a produção.")
+            show_warning_message(self, "Atenção", "Selecione uma linha de produção para iniciar a produção.")
             return
 
         line_id = int(self.lines_table.item(selected_row, 0).text())
         status = self.lines_table.item(selected_row, 3).text()
 
         if status == 'Inativa':
-            QMessageBox.warning(self, "Atenção", "Não é possível iniciar a produção a partir de uma linha inativa.")
+            show_warning_message(self, "Atenção", "Não é possível iniciar a produção a partir de uma linha inativa.")
             return
 
         line_details = line_operations.get_production_line_details(line_id)
         if not line_details or not line_details['items']:
-            QMessageBox.warning(self, "Atenção", "Esta linha de produção não tem produtos para produzir.")
+            show_warning_message(self, "Atenção", "Esta linha de produção não tem produtos para produzir.")
             return
 
         items_to_produce = [
@@ -150,7 +153,7 @@ class LineListWindow(QWidget):
         new_op_id = order_operations.create_op(numero_op, None, items_to_produce, id_linha_producao=line_id)
         
         if new_op_id:
-            QMessageBox.information(self, "Ordem de Produção Criada", f"Ordem de Produção #{new_op_id} foi criada. Por favor, revise e finalize.")
+            show_success_message(self, "Ordem de Produção Criada", f"Ordem de Produção #{new_op_id} foi criada. Por favor, revise e finalize.")
             if self.order_window is None:
                 self.order_window = ProductionOrderWindow(op_id=new_op_id)
                 self.order_window.destroyed.connect(lambda: setattr(self, 'order_window', None))
@@ -159,4 +162,4 @@ class LineListWindow(QWidget):
                 self.order_window.load_op_by_id(new_op_id)
                 self.order_window.activateWindow()
         else:
-            QMessageBox.critical(self, "Erro", "Falha ao criar a Ordem de Produção a partir da linha selecionada.")
+            show_error_message(self, "Erro", "Falha ao criar a Ordem de Produção a partir da linha selecionada.")

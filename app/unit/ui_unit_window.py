@@ -7,7 +7,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.unit.unit_service import UnitService
-from app.utils.ui_utils import show_error_message
+from app.utils.ui_utils import (
+    show_error_message, show_success_message, 
+    show_confirmation_message, show_warning_message
+)
 
 from app.styles.buttons_styles import (
     button_style, GREEN, RED, YELLOW
@@ -123,7 +126,7 @@ class UnitWindow(QWidget):
     def open_edit_dialog(self):
         selected_rows = self.table_view.selectionModel().selectedRows()
         if not selected_rows:
-            QMessageBox.warning(self, "Atenção", "Selecione uma unidade para editar.")
+            show_warning_message(self, "Atenção", "Selecione uma unidade para editar.")
             return
             
         row = selected_rows[0].row()
@@ -143,17 +146,16 @@ class UnitWindow(QWidget):
     def delete_unit(self):
         selected_rows = self.table_view.selectionModel().selectedRows()
         if not selected_rows:
-            QMessageBox.warning(self, "Atenção", "Selecione uma unidade para excluir.")
+            show_warning_message(self, "Atenção", "Selecione uma unidade para excluir.")
             return
 
         row = selected_rows[0].row()
         unit_id = int(self.table_model.item(row, 0).text())
         name = self.table_model.item(row, 1).text()
 
-        reply = QMessageBox.question(
+        reply = show_confirmation_message(
             self, "Confirmar Exclusão", 
-            f"Tem certeza que deseja excluir a unidade '{name}'?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            f"Tem certeza que deseja excluir a unidade '{name}'?"
         )
         if reply == QMessageBox.Yes:
             response = self.unit_service.delete_unit(unit_id)
