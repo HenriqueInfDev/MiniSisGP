@@ -58,6 +58,7 @@ def window_style(color):
     QLabel {{
         color: {color['text-color']};
         font-weight: 700;
+        background-color:transparent;
     }}
 
     /* =====================

@@ -20,7 +20,11 @@ from app.styles.windows_style import (
     window_style, LIGHT
 )
 from app.styles.input_styles import (
-    input_style, DEFAULTINPUT
+    input_style, input_date_style, DEFAULTINPUT
+)
+
+from app.styles.search_field_style import (
+    search_field_style, DEFAULT
 )
 
 class SupplierDelegate(QStyledItemDelegate):
@@ -86,9 +90,13 @@ class EntryEditWindow(QWidget):
         form = QFormLayout()
         self.entry_id_display = QLabel("(Nova)")
         self.date_input = QDateEdit(calendarPopup=True)
+        self.date_input.setStyleSheet(input_date_style(DEFAULTINPUT))
+        self.date_input.setCalendarPopup(True)
         self.date_input.setDisplayFormat(BRAZILIAN_DATE_FORMAT)
         self.date_input.setDate(QDate.currentDate())
         self.typing_date_input = QDateTimeEdit()
+        self.typing_date_input.setStyleSheet(input_date_style(DEFAULTINPUT))
+        self.typing_date_input.setCalendarPopup(True)
         self.typing_date_input.setDisplayFormat(BRAZILIAN_DATE_FORMAT + " HH:mm:ss")
         self.typing_date_input.setDateTime(QDateTime.currentDateTime())
         self.typing_date_input.setCalendarPopup(True)

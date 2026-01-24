@@ -1,7 +1,8 @@
 DEFAULTINPUT = {
     "border-radius": "6px",
     "padding": "6px 6px",
-    "font-weight": "500"
+    "font-weight": "500",
+    "border-color": "#B3B3B3"
 }
 
 def input_style(color):
@@ -14,54 +15,125 @@ def input_style(color):
         font-size: 14px;
     }}
     """
-
-def doublespinbox_style(color):
+def input_date_style(color):
     return f"""
-    QDoubleSpinBox {{
+    /* ===== INPUT DE DATA / DATA+HORA ===== */
+    QDateEdit, QDateTimeEdit {{
+        border: 1px solid {color['border-color']};
         border-radius: {color['border-radius']};
         padding: {color['padding']};
         font-weight: {color['font-weight']};
         font-size: 14px;
-        padding-right: 20px; /* espaço para os botões */
+        background-color: white;
+        color: #333333;
     }}
 
-    /* Caixa dos botões */
-    QDoubleSpinBox::up-button,
-    QDoubleSpinBox::down-button {{
+    QDateEdit:hover, QDateTimeEdit:hover {{
+        border-color: #999999;
+    }}
+
+    QDateEdit:focus, QDateTimeEdit:focus {{
+        border-color: #7A7A7A;
+    }}
+
+    /* ===== BOTÃO DO CALENDÁRIO ===== */
+    QDateEdit::drop-down, QDateTimeEdit::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: right center;
+        width: 30px;
+        border-left: 1px solid {color['border-color']};
+        background-color: #F5F5F5;
+    }}
+
+    QDateEdit::down-arrow, QDateTimeEdit::down-arrow {{
+        image: url(app/styles/images/icons/calendar.svg);
+        width: 14px;
+        height: 14px;
+    }}
+
+    /* ===== CALENDÁRIO ===== */
+    QCalendarWidget {{
+        background-color: white;
+        border: 1px solid {color['border-color']};
+        border-radius: 8px;
+
+        /* GARANTE ESPAÇO */
+        min-width: 280px;
+        min-height: 260px;
+    }}
+
+    /* ===== BARRA DE NAVEGAÇÃO (MÊS / ANO) ===== */
+    QCalendarWidget QWidget#qt_calendar_navigationbar {{
+        background-color: #F2F2F2;
+        border-bottom: 1px solid #DDDDDD;
+    }}
+
+    /* Botões de navegação (setas e texto) */
+    QCalendarWidget QToolButton {{
+        color: #333333;
+        font-weight: 600;
         background: transparent;
+        padding: 6px 10px;
+        margin: 2px;
+    }}
+
+    QCalendarWidget QToolButton:hover {{
+        background-color: #E0E0E0;
+        border-radius: 4px;
+    }}
+
+    /* REMOVE SETA DO DROPDOWN DO MÊS */
+    QCalendarWidget QToolButton::menu-indicator {{
+        image: none;
+        width: 0px;
+    }}
+
+    /* ===== DIAS DA SEMANA ===== */
+    QCalendarWidget QHeaderView::section {{
+        background-color: #FAFAFA;
+        color: #666666;
+        padding: 6px;
+        font-weight: 600;
         border: none;
-        width: 16px;
     }}
 
-    /* Botão de subir */
-    QDoubleSpinBox::up-button {{
-        subcontrol-origin: border;
-        subcontrol-position: top right;
+    /* ===== GRADE ===== */
+    QCalendarWidget QAbstractItemView {{
+        gridline-color: #E6E6E6;
+        selection-background-color: #198754;
+        selection-color: white;
+        outline: none;
+        font-size: 13px;
     }}
 
-    /* Botão de descer */
-    QDoubleSpinBox::down-button {{
-        subcontrol-origin: border;
-        subcontrol-position: bottom right;
+    /* ===== DIAS ===== */
+    QCalendarWidget QAbstractItemView::item {{
+        background-color: white;
+        color: #333333;
+
+        /* 🔥 ISSO REMOVE OS "..." */
+        min-width: 36px;
+        min-height: 32px;
+
+        padding: 6px;
+        border-radius: 6px;
     }}
 
-    /* Seta de subir */
-    QDoubleSpinBox::up-arrow {{
-        image: url(app/styles/images/icons/doublespin-up-arrow.svg);
-        width: 10px;
-        height: 10px;
+    QCalendarWidget QAbstractItemView::item:hover {{
+        background-color: #EAEAEA;
     }}
 
-    /* Seta de descer */
-    QDoubleSpinBox::down-arrow {{
-        image: url(app/styles/images/icons/doublespin-down-arrow.svg);
-        width: 10px;
-        height: 10px;
+    /* ===== DIAS FORA DO MÊS ===== */
+    QCalendarWidget QAbstractItemView::item:disabled {{
+        background-color: #F3F3F3;
+        color: #B5B5B5;
     }}
 
-    /* Hover opcional */
-    QDoubleSpinBox::up-button:hover,
-    QDoubleSpinBox::down-button:hover {{
-        background-color: rgba(255, 255, 255, 0.05);
+    /* ===== DIA SELECIONADO ===== */
+    QCalendarWidget QAbstractItemView::item:selected {{
+        background-color: #198754;
+        color: white;
+        font-weight: 600;
     }}
     """
+
