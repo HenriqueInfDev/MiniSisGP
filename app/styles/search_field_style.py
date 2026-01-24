@@ -10,7 +10,6 @@ def search_field_style(c):
     QComboBox {{
         padding: {c['padding']};
         font-weight: {c['font-weight']};
-        font-size: 14px;
         border: 1px solid {c['border-color']};
         border-radius: {c['border-radius']};
         background-color: white;
@@ -34,5 +33,25 @@ def search_field_style(c):
 
     QComboBox:focus {{
         border-color: #7A7A7A;
+    }}
+
+    /* 🔹 Lista suspensa */
+    QComboBox QAbstractItemView {{
+        background-color: white;
+        border: 1px solid #B3B3B3;
+        selection-background-color: #E6F0FF;
+        selection-color: #000000;
+        outline: 0;
+    }}
+
+    /* 🔹 Hover do mouse */
+    QComboBox QAbstractItemView::item:hover {{
+        background-color: #F0F4FF;
+    }}
+
+    /* 🔹 Item selecionado */
+    QComboBox QAbstractItemView::item:selected {{
+        background-color: #DCE8FF;
+        color: #000000;
     }}
     """
