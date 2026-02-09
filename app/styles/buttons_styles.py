@@ -1,11 +1,13 @@
-# ===== PALETA =====
+# ======================================================
+# PALETA DE CORES
+# ======================================================
 
 GREEN = {
     "default": "#198754",
     "hover": "#157347",
     "pressed": "#146c43",
     "disabled": "#8fd3b0",
-    "text": "white"
+    "text": "white",
 }
 
 BLUE = {
@@ -13,7 +15,7 @@ BLUE = {
     "hover": "#0b5ed7",
     "pressed": "#0a58ca",
     "disabled": "#9ec5fe",
-    "text": "white"
+    "text": "white",
 }
 
 GRAY = {
@@ -21,7 +23,7 @@ GRAY = {
     "hover": "#5c636a",
     "pressed": "#565e64",
     "disabled": "#ced4da",
-    "text": "white"
+    "text": "white",
 }
 
 RED = {
@@ -29,7 +31,7 @@ RED = {
     "hover": "#bb2d3b",
     "pressed": "#b02a37",
     "disabled": "#f1aeb5",
-    "text": "white"
+    "text": "white",
 }
 
 YELLOW = {
@@ -37,10 +39,12 @@ YELLOW = {
     "hover": "#e0a800",
     "pressed": "#d39e00",
     "disabled": "#ffe69c",
-    "text": "#212529"   # 👈 TEXTO ESCURO
+    "text": "#212529",  # texto escuro
 }
 
-# ===== FUNÇÕES DE ESTILO =====
+# ======================================================
+# FUNÇÕES DE ESTILO
+# ======================================================
 
 def button_style(color):
     """Retorna QSS padrão para botões"""

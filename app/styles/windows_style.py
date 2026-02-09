@@ -1,4 +1,6 @@
-# ===== PALETA =====
+# ======================================================
+# PALETA – TEMA CLARO
+# ======================================================
 
 LIGHT = {
     "background": "#F2F2F2",
@@ -11,13 +13,16 @@ LIGHT = {
     "focus": "#B0B0B0",
 }
 
-# ===== FUNÇÃO DE ESTILO =====
+
+# ======================================================
+# WINDOW STYLE
+# ======================================================
 
 def window_style(color):
     return f"""
-    /* =====================
+    /* ==================================================
        BASE
-       ===================== */
+       ================================================== */
 
     QWidget {{
         background-color: {color['background']};
@@ -25,45 +30,45 @@ def window_style(color):
         font-family: "Segoe UI", "Inter", "Arial";
     }}
 
-    QLabel, 
-    QPushButton, 
-    QLineEdit, 
-    QComboBox, 
-    QDoubleSpinBox, 
-    QDateEdit, 
-    QDateTimeEdit, 
-    QTextEdit, 
-    QTableWidget, 
-    QTableView, 
-    QMenuBar, 
-    QMenu, 
-    QGroupBox, 
-    QTabBar::tab, 
+    QLabel,
+    QPushButton,
+    QLineEdit,
+    QComboBox,
+    QDoubleSpinBox,
+    QDateEdit,
+    QDateTimeEdit,
+    QTextEdit,
+    QTableWidget,
+    QTableView,
+    QMenuBar,
+    QMenu,
+    QGroupBox,
+    QTabBar::tab,
     QHeaderView::section {{
         font-size: 14px;
     }}
 
-    /* =====================
+    /* ==================================================
        MAIN WINDOW
-       ===================== */
+       ================================================== */
 
     QMainWindow {{
         background-color: {color['background']};
     }}
 
-    /* =====================
+    /* ==================================================
        LABELS
-       ===================== */
+       ================================================== */
 
     QLabel {{
         color: {color['text-color']};
         font-weight: 700;
-        background-color:transparent;
+        background-color: transparent;
     }}
 
-    /* =====================
-       MENU BAR
-       ===================== */
+    /* ==================================================
+       MENU BAR / MENU
+       ================================================== */
 
     QMenuBar {{
         background-color: {color['background-menu']};
@@ -88,6 +93,10 @@ def window_style(color):
         background-color: {color['hover']};
     }}
 
+    /* ==================================================
+       GROUP BOX
+       ================================================== */
+
     QGroupBox {{
         border: 1px solid {color['border']};
         border-radius: 6px;
@@ -102,6 +111,10 @@ def window_style(color):
         color: {color['text-color']};
         font-weight: 500;
     }}
+
+    /* ==================================================
+       INPUTS
+       ================================================== */
 
     QLineEdit,
     QDoubleSpinBox,
@@ -126,13 +139,17 @@ def window_style(color):
         color: {color['text-muted']};
     }}
 
-    QTabWidget::pane QWidget {{
-        background-color: #FFFFFF;
-    }}
+    /* ==================================================
+       TABS
+       ================================================== */
 
     QTabWidget::pane {{
         border: 1px solid {color['border']};
         background: {color['surface']};
+    }}
+
+    QTabWidget::pane QWidget {{
+        background-color: #FFFFFF;
     }}
 
     QTabBar::tab {{
@@ -151,17 +168,9 @@ def window_style(color):
         margin-top: 2px;
     }}
 
-    QHeaderView::section {{
-        background-color: {color['background-menu']};
-        padding: 4px 6px;
-        border: 1px solid {color['border']};
-        font-weight: 500;
-    }}
-
-        
-    /* =====================
-    TABLES (QTableView / QTableWidget)
-    ===================== */
+    /* ==================================================
+       TABLES (QTableView / QTableWidget)
+       ================================================== */
 
     QTableView,
     QTableWidget {{
@@ -172,7 +181,7 @@ def window_style(color):
         outline: 0;
     }}
 
-    /* Garante TODAS as linhas (inclusive esquerda) */
+    /* Itens (inclui borda esquerda) */
     QTableView::item,
     QTableWidget::item {{
         border-left: 1px solid {color['border']};
@@ -181,20 +190,20 @@ def window_style(color):
         color: {color['text-color']};
     }}
 
-    /* REMOVE hover azul do Windows */
+    /* Remove hover azul padrão */
     QTableView::item:hover,
     QTableWidget::item:hover {{
         background-color: transparent;
     }}
 
-    /* Seleção (clique) — CINZA */
+    /* Seleção */
     QTableView::item:selected,
     QTableWidget::item:selected {{
         background-color: #D6D6D6;
         color: {color['text-color']};
     }}
 
-    /* Seleção sem foco (quando perde foco) */
+    /* Seleção sem foco */
     QTableView::item:selected:!active,
     QTableWidget::item:selected:!active {{
         background-color: #D6D6D6;
@@ -208,7 +217,7 @@ def window_style(color):
         font-weight: 500;
     }}
 
-    /* Canto superior esquerdo */
+    /* Canto superior esquerdo da tabela */
     QTableCornerButton::section {{
         background-color: {color['background-menu']};
         border: 1px solid {color['border']};

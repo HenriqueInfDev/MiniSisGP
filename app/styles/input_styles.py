@@ -1,12 +1,21 @@
+# ======================================================
+# INPUT PADRÃO
+# ======================================================
+
 DEFAULTINPUT = {
     "border-radius": "6px",
     "padding": "6px 6px",
     "font-weight": "500",
-    "border-color": "#B3B3B3"
+    "border-color": "#B3B3B3",
 }
 
+
+# ======================================================
+# QLINEEDIT / QTEXTEDIT
+# ======================================================
+
 def input_style(color):
-    """Retorna QSS padrão para botões"""
+    """Retorna QSS padrão para inputs de texto"""
     return f"""
     QLineEdit, QTextEdit {{
         border-radius: {color['border-radius']};
@@ -15,6 +24,11 @@ def input_style(color):
         font-size: 14px;
     }}
     """
+
+
+# ======================================================
+# QDOUBLESPINBOX
+# ======================================================
 
 def doublespinbox_style(color):
     return f"""
@@ -67,6 +81,11 @@ def doublespinbox_style(color):
     }}
     """
 
+
+# ======================================================
+# QDATEEDIT / QDATETIMEEDIT + CALENDÁRIO
+# ======================================================
+
 def input_date_style(color):
     return f"""
     /* ===== INPUT DE DATA / DATA+HORA ===== */
@@ -108,8 +127,6 @@ def input_date_style(color):
         background-color: white;
         border: 1px solid {color['border-color']};
         border-radius: 8px;
-
-        /* GARANTE ESPAÇO */
         min-width: 280px;
         min-height: 260px;
     }}
@@ -120,7 +137,7 @@ def input_date_style(color):
         border-bottom: 1px solid #DDDDDD;
     }}
 
-    /* Botões de navegação (setas e texto) */
+    /* Botões de navegação */
     QCalendarWidget QToolButton {{
         color: #333333;
         font-weight: 600;
@@ -134,7 +151,7 @@ def input_date_style(color):
         border-radius: 4px;
     }}
 
-    /* REMOVE SETA DO DROPDOWN DO MÊS */
+    /* Remove seta dropdown do mês */
     QCalendarWidget QToolButton::menu-indicator {{
         image: none;
         width: 0px;
@@ -162,11 +179,8 @@ def input_date_style(color):
     QCalendarWidget QAbstractItemView::item {{
         background-color: white;
         color: #333333;
-
-        /* 🔥 ISSO REMOVE OS "..." */
         min-width: 36px;
         min-height: 32px;
-
         padding: 6px;
         border-radius: 6px;
     }}
@@ -188,4 +202,3 @@ def input_date_style(color):
         font-weight: 600;
     }}
     """
-
