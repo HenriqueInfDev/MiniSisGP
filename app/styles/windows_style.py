@@ -126,6 +126,10 @@ def window_style(color):
         color: {color['text-muted']};
     }}
 
+    QTabWidget::pane QWidget {{
+        background-color: #FFFFFF;
+    }}
+
     QTabWidget::pane {{
         border: 1px solid {color['border']};
         background: {color['surface']};
