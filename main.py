@@ -95,7 +95,7 @@ class MainWindow(QMainWindow):
         self._add_menu_action(financial_reports_menu, "Lucro por Período", "profit_by_period_report", lambda: FinancialReportWindow("Lucro por Período"))
 
         # Menu Configurações
-        settings_menu = menu_bar.addMenu("&Configurações")
+        # settings_menu = menu_bar.addMenu("&Configurações")
 
     def _add_menu_action(self, menu, text, window_name, window_class):
         action = QAction(text, self)
