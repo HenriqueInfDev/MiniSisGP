@@ -12,7 +12,7 @@ def create_production_line(name, description, status, items):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO LINHAPRODUCAO_MASTER (NOME, DESCRICAO, STATUS) VALUES (?, ?, ?)",
+            "INSERT INTO LINHAPRODUCAO (NOME, DESCRICAO, STATUS) VALUES (?, ?, ?)",
             (name, description, status)
         )
         line_id = cursor.lastrowid
@@ -44,7 +44,7 @@ def get_all_production_lines():
             lm.NOME,
             lm.STATUS,
             COUNT(li.ID_PRODUTO) AS QTD_PRODUTOS
-        FROM LINHAPRODUCAO_MASTER lm
+        FROM LINHAPRODUCAO lm
         LEFT JOIN LINHAPRODUCAO_ITEMS li ON lm.ID = li.ID_LINHA_PRODUCAO
         GROUP BY lm.ID, lm.NOME, lm.STATUS
         ORDER BY lm.NOME;
@@ -62,7 +62,7 @@ def get_production_line_details(line_id):
     cursor = conn.cursor()
     
     # Busca os dados mestre
-    cursor.execute("SELECT * FROM LINHAPRODUCAO_MASTER WHERE ID = ?", (line_id,))
+    cursor.execute("SELECT * FROM LINHAPRODUCAO WHERE ID = ?", (line_id,))
     master = cursor.fetchone()
     if not master:
         return None
@@ -97,7 +97,7 @@ def update_production_line(line_id, name, description, status, items):
     try:
         # Atualiza o mestre
         cursor.execute(
-            "UPDATE LINHAPRODUCAO_MASTER SET NOME = ?, DESCRICAO = ?, STATUS = ? WHERE ID = ?",
+            "UPDATE LINHAPRODUCAO SET NOME = ?, DESCRICAO = ?, STATUS = ? WHERE ID = ?",
             (name, description, status, line_id)
         )
         
@@ -131,7 +131,7 @@ def delete_production_line(line_id):
     conn = db_manager.get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM LINHAPRODUCAO_MASTER WHERE ID = ?", (line_id,))
+        cursor.execute("DELETE FROM LINHAPRODUCAO WHERE ID = ?", (line_id,))
         conn.commit()
         return True
     except Exception as e:

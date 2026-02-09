@@ -76,7 +76,7 @@ class DatabaseManager:
                                     ID INTEGER PRIMARY KEY AUTOINCREMENT, NUMERO TEXT, DATA_CRIACAO TEXT NOT NULL,
                                     DATA_PREVISTA TEXT, STATUS TEXT NOT NULL CHECK(STATUS IN ('Em Andamento', 'Concluída', 'Cancelada')),
                                     QUANTIDADE_PRODUZIDA REAL, CUSTO_TOTAL REAL, ID_LINHA_PRODUCAO INTEGER,
-                                    FOREIGN KEY (ID_LINHA_PRODUCAO) REFERENCES LINHAPRODUCAO_MASTER(ID) ON DELETE SET NULL)''',
+                                    FOREIGN KEY (ID_LINHA_PRODUCAO) REFERENCES LINHAPRODUCAO(ID) ON DELETE SET NULL)''',
             "ORDEMPRODUCAO_ITENS": '''CREATE TABLE IF NOT EXISTS ORDEMPRODUCAO_ITENS (
                                         ID INTEGER PRIMARY KEY AUTOINCREMENT, ID_ORDEM_PRODUCAO INTEGER NOT NULL,
                                         ID_PRODUTO INTEGER NOT NULL, QUANTIDADE_PRODUZIR REAL NOT NULL,
@@ -104,13 +104,13 @@ class DatabaseManager:
                                 FOREIGN KEY (ID_SAIDA) REFERENCES SAIDA (ID) ON DELETE RESTRICT,
                                 FOREIGN KEY (ID_PRODUTO) REFERENCES ITEM (ID) ON DELETE RESTRICT,
                                 UNIQUE (ID_SAIDA, ID_PRODUTO) )''',
-            "LINHAPRODUCAO_MASTER": '''CREATE TABLE IF NOT EXISTS LINHAPRODUCAO_MASTER (
+            "LINHAPRODUCAO": '''CREATE TABLE IF NOT EXISTS LINHAPRODUCAO (
                                         ID INTEGER PRIMARY KEY AUTOINCREMENT, NOME TEXT NOT NULL UNIQUE,
                                         DESCRICAO TEXT, STATUS TEXT NOT NULL DEFAULT 'Ativa' CHECK(STATUS IN ('Ativa', 'Inativa')) )''',
             "LINHAPRODUCAO_ITEMS": '''CREATE TABLE IF NOT EXISTS LINHAPRODUCAO_ITEMS (
                                         ID INTEGER PRIMARY KEY AUTOINCREMENT, ID_LINHA_PRODUCAO INTEGER NOT NULL,
                                         ID_PRODUTO INTEGER NOT NULL, QUANTIDADE REAL NOT NULL,
-                                        FOREIGN KEY (ID_LINHA_PRODUCAO) REFERENCES LINHAPRODUCAO_MASTER (ID) ON DELETE CASCADE,
+                                        FOREIGN KEY (ID_LINHA_PRODUCAO) REFERENCES LINHAPRODUCAO (ID) ON DELETE CASCADE,
                                         FOREIGN KEY (ID_PRODUTO) REFERENCES ITEM (ID) ON DELETE RESTRICT,
                                         UNIQUE (ID_LINHA_PRODUCAO, ID_PRODUTO) )'''
         }
@@ -213,7 +213,7 @@ class DatabaseManager:
         if not self._column_exists(cursor, 'ORDEMPRODUCAO', 'ID_LINHA_PRODUCAO'):
             cursor.execute('''
                 ALTER TABLE ORDEMPRODUCAO
-                ADD COLUMN ID_LINHA_PRODUCAO INTEGER REFERENCES LINHAPRODUCAO_MASTER(ID) ON DELETE SET NULL
+                ADD COLUMN ID_LINHA_PRODUCAO INTEGER REFERENCES LINHAPRODUCAO(ID) ON DELETE SET NULL
             ''')
 
     def _column_exists(self, cursor, table_name, column_name):
@@ -528,7 +528,7 @@ class DatabaseManager:
             FROM ORDEMPRODUCAO op
             LEFT JOIN ORDEMPRODUCAO_ITENS opi ON op.ID = opi.ID_ORDEM_PRODUCAO
             LEFT JOIN ITEM i ON opi.ID_PRODUTO = i.ID
-            LEFT JOIN LINHAPRODUCAO_MASTER lpm ON op.ID_LINHA_PRODUCAO = lpm.ID
+            LEFT JOIN LINHAPRODUCAO lpm ON op.ID_LINHA_PRODUCAO = lpm.ID
         """
         
         where_clauses = []
