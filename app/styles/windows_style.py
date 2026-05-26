@@ -73,10 +73,22 @@ def window_style(color):
     QMenuBar {{
         background-color: {color['background-menu']};
         color: {color['text-color']};
+        font-size: 14px;
+        font-weight: normal;
     }}
 
-    QMenuBar::item:selected {{
+    QMenuBar::item {{
+        font: 14px "Segoe UI", "Inter", "Arial";
+        font-weight: normal;
+        padding: 4px 8px;
+    }}
+
+    QMenuBar::item:hover,
+    QMenuBar::item:selected,
+    QMenuBar::item:pressed {{
         background-color: {color['hover']};
+        font: 14px "Segoe UI", "Inter", "Arial";
+        font-weight: normal;
     }}
 
     QMenu {{
