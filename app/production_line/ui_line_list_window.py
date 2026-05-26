@@ -61,6 +61,7 @@ class LineListWindow(QWidget):
         self.lines_table = QTableWidget()
         self.lines_table.setColumnCount(4)
         self.lines_table.setHorizontalHeaderLabels(["ID", "Nome", "Qtd. Produtos", "Status"])
+        self.lines_table.setAlternatingRowColors(True)
         self.lines_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.lines_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.lines_table.verticalHeader().setVisible(False)

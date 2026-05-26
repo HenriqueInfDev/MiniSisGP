@@ -7,7 +7,7 @@ from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 
 from app.item.service import ItemService
-from app.utils.ui_utils import show_error_message
+from app.utils.ui_utils import show_error_message, configure_table_columns
 
 from app.styles.buttons_styles import (
     button_style, GREEN, BLUE
@@ -89,9 +89,10 @@ class ItemSearchWindow(QWidget):
         self.table_model.setHorizontalHeaderLabels(["ID", "Descrição", "Código Interno", "Tipo", "Un.", "Quantidade", "Custo Unit."])
         self.table_view.setModel(self.table_model)
         self.table_view.setAlternatingRowColors(True)
+        self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         header = self.table_view.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch) # Coluna "Descrição"
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStretchLastSection(False)
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
@@ -101,6 +102,10 @@ class ItemSearchWindow(QWidget):
         results_layout.addWidget(self.table_view)
         results_group.setLayout(results_layout)
         self.main_layout.addWidget(results_group)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        configure_table_columns(self.table_view, total_width=self.table_view.viewport().width())
 
     def load_items(self):
         """Carrega os itens na tabela, usando o ItemService."""
@@ -130,41 +135,37 @@ class ItemSearchWindow(QWidget):
             items = [item for item in items if item['TIPO_ITEM'] in self.item_type_filter]
             
         for item in items:
-            id_item = QStandardItem()
-            id_item.setData(item['ID'], 0)
+            id_item = QStandardItem(str(item['ID']))
+            id_item.setData(item['ID'], Qt.DisplayRole)
 
-            qty_item = QStandardItem()
-            qty_item.setData(item['SALDO_ESTOQUE'], 0)
-            
-            cost_item = QStandardItem()
-            cost_item.setData(item['CUSTO_MEDIO'], 0)
+            qty_item = QStandardItem(f"{item['SALDO_ESTOQUE']:.2f}" if item['SALDO_ESTOQUE'] is not None else "")
+            cost_item = QStandardItem(f"{item['CUSTO_MEDIO']:.2f}" if item['CUSTO_MEDIO'] is not None else "")
 
             row = [
                 id_item,
                 QStandardItem(item['DESCRICAO']),
-                QStandardItem(item['CODIGO_INTERNO']),
+                QStandardItem(item['CODIGO_INTERNO'] or ""),
                 QStandardItem(item['TIPO_ITEM']),
                 QStandardItem(item['SIGLA'].upper()),
                 qty_item,
                 cost_item
             ]
-            # Adiciona a linha à tabela primeiro
             self.table_model.appendRow(row)
-            # Agora que a linha existe, podemos adicionar o dado extra
-            row_index = self.table_model.rowCount() - 1
+
             full_item_data = {
                 'ID': item['ID'],
                 'DESCRICAO': item['DESCRICAO'],
+                'CODIGO_INTERNO': item.get('CODIGO_INTERNO'),
                 'TIPO_ITEM': item['TIPO_ITEM'],
                 'SIGLA': item['SIGLA'],
                 'SALDO_ESTOQUE': item['SALDO_ESTOQUE'],
                 'CUSTO_MEDIO': item['CUSTO_MEDIO']
             }
-            self.table_model.item(row_index, 0).setData(full_item_data)
+            self.table_model.item(self.table_model.rowCount() - 1, 0).setData(full_item_data, Qt.UserRole)
 
     def handle_double_click(self, model_index):
         if self.selection_mode:
-            item_data = self.table_model.item(model_index.row(), 0).data()
+            item_data = self.table_model.item(model_index.row(), 0).data(Qt.UserRole)
             self.item_selected.emit(item_data)
             self.close()
         else:
@@ -176,7 +177,7 @@ class ItemSearchWindow(QWidget):
 
     def open_edit_item_window(self, model_index):
         # Pega o ID do item da tabela e passa para a janela de edição
-        item_data = self.table_model.item(model_index.row(), 0).data()
+        item_data = self.table_model.item(model_index.row(), 0).data(Qt.UserRole)
         self.show_edit_window(item_id=item_data['ID'])
 
     def show_edit_window(self, item_id):

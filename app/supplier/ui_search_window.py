@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Signal, Qt
 from app.supplier.service import SupplierService
-from app.utils.ui_utils import show_error_message
+from app.utils.ui_utils import show_error_message, configure_table_columns
 from app.supplier.ui_edit_window import SupplierEditWindow
 
 from app.styles.buttons_styles import (
@@ -83,15 +83,23 @@ class SupplierSearchWindow(QWidget):
         self.table_model = QStandardItemModel()
         self.table_model.setHorizontalHeaderLabels(["ID", "Razão Social", "Nome Fantasia", "CNPJ", "Telefone", "Email", "Status"])
         self.table_view.setModel(self.table_model)
+        self.table_view.setAlternatingRowColors(True)
+        self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table_view.verticalHeader().setVisible(False)
         self.table_view.setColumnHidden(0, True)
-        self.table_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        header = self.table_view.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStretchLastSection(False)
         self.table_view.doubleClicked.connect(self.handle_double_click)
         results_layout.addWidget(self.table_view)
         results_group.setLayout(results_layout)
         main_layout.addWidget(results_group)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        configure_table_columns(self.table_view, total_width=self.table_view.viewport().width())
 
     def load_suppliers(self):
         self.table_model.removeRows(0, self.table_model.rowCount())

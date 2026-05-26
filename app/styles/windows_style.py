@@ -73,7 +73,7 @@ def window_style(color):
     QMenuBar {{
         background-color: {color['background-menu']};
         color: {color['text-color']};
-        font-size: 14px;
+        font: 14px "Segoe UI", "Inter", "Arial";
         font-weight: normal;
     }}
 
@@ -81,12 +81,19 @@ def window_style(color):
         font: 14px "Segoe UI", "Inter", "Arial";
         font-weight: normal;
         padding: 4px 8px;
+        min-width: 90px;
     }}
 
     QMenuBar::item:hover,
     QMenuBar::item:selected,
-    QMenuBar::item:pressed {{
+    QMenuBar::item:pressed,
+    QMenuBar::item:open {{
         background-color: {color['hover']};
+        font: 14px "Segoe UI", "Inter", "Arial";
+        font-weight: normal;
+    }}
+
+    QMenuBar::item:!selected {{
         font: 14px "Segoe UI", "Inter", "Arial";
         font-weight: normal;
     }}
@@ -202,10 +209,10 @@ def window_style(color):
         color: {color['text-color']};
     }}
 
-    /* Remove hover azul padrão */
+    /* Hover leve nas linhas */
     QTableView::item:hover,
     QTableWidget::item:hover {{
-        background-color: transparent;
+        background-color: #F4F4F4;
     }}
 
     /* Seleção */

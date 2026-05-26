@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt
 from app.sales.sale_service import SaleService
-from app.utils.ui_utils import show_error_message
+from app.utils.ui_utils import show_error_message, configure_table_columns
 from app.sales.ui_sale_edit_window import SaleEditWindow
 from app.utils.date_utils import format_date_for_display
 
@@ -66,10 +66,12 @@ class SaleSearchWindow(QWidget):
         self.table_model = QStandardItemModel()
         self.table_model.setHorizontalHeaderLabels(["ID", "Data Saída", "Valor Total", "Status"])
         self.table_view.setModel(self.table_model)
+        self.table_view.setAlternatingRowColors(True)
+        self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         
         header = self.table_view.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStretchLastSection(False)
         
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -80,6 +82,10 @@ class SaleSearchWindow(QWidget):
         results_layout.addWidget(self.table_view)
         results_group.setLayout(results_layout)
         main_layout.addWidget(results_group)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        configure_table_columns(self.table_view, total_width=self.table_view.viewport().width())
 
     def load_sales(self):
         self.table_model.removeRows(0, self.table_model.rowCount())

@@ -9,7 +9,8 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.unit.unit_service import UnitService
 from app.utils.ui_utils import (
     show_error_message, show_success_message, 
-    show_confirmation_message, show_warning_message
+    show_confirmation_message, show_warning_message,
+    configure_table_columns
 )
 
 from app.styles.buttons_styles import (
@@ -85,10 +86,12 @@ class UnitWindow(QWidget):
         self.table_model = QStandardItemModel()
         self.table_model.setHorizontalHeaderLabels(["ID", "Nome", "Sigla"])
         self.table_view.setModel(self.table_model)
+        self.table_view.setAlternatingRowColors(True)
+        self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         
         header = self.table_view.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStretchLastSection(False)
         self.table_view.setColumnHidden(0, True)
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -98,6 +101,10 @@ class UnitWindow(QWidget):
         results_layout.addWidget(self.table_view)
         results_group.setLayout(results_layout)
         main_layout.addWidget(results_group)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        configure_table_columns(self.table_view, total_width=self.table_view.viewport().width())
 
     def load_units(self):
         self.table_model.removeRows(0, self.table_model.rowCount())
