@@ -73,14 +73,14 @@ def doublespinbox_style(color):
 
     /* Seta de subir */
     QDoubleSpinBox::up-arrow {{
-        image: url(app/images/icons/doublespin-up-arrow.svg);
+        image: url(app/styles/images/icons/doublespin-up-arrow.svg);
         width: 10px;
         height: 10px;
     }}
 
     /* Seta de descer */
     QDoubleSpinBox::down-arrow {{
-        image: url(app/images/icons/doublespin-down-arrow.svg);
+        image: url(app/styles/images/icons/doublespin-down-arrow.svg);
         width: 10px;
         height: 10px;
     }}
@@ -128,7 +128,7 @@ def input_date_style(color):
     }}
 
     QDateEdit::down-arrow, QDateTimeEdit::down-arrow {{
-        image: url(app/images/icons/calendar.svg);
+        image: url(app/styles/images/icons/calendar.svg);
         width: 14px;
         height: 14px;
     }}

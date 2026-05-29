@@ -178,7 +178,7 @@ def window_style(color):
 
     QDateEdit::down-arrow,
     QDateTimeEdit::down-arrow {{
-        image: url(app/images/icons/calendar.svg);
+        image: url(app/styles/images/icons/calendar.svg);
         width: 14px;
         height: 14px;
     }}

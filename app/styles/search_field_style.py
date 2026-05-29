@@ -13,10 +13,8 @@ DEFAULT = {
 
 def _get_icon_path(icon_name):
     """Resolve o caminho absoluto de um ícone"""
-    # Navega até app/images/icons a partir do arquivo em app/styles/
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    app_dir = os.path.dirname(current_dir)  # vai para app/
-    icon_path = os.path.join(app_dir, "images", "icons", icon_name)
+    icon_path = os.path.join(current_dir, "images", "icons", icon_name)
     # Converter para caminho com forward slashes para o QSS
     return icon_path.replace("\\", "/")
 
