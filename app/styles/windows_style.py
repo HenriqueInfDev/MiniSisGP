@@ -109,9 +109,9 @@ def window_style(color):
     }}
 
     QMenuBar::item {{
-        padding: 10px 16px;
+        padding: 8px 12px;
         margin: 0 6px;
-        border-radius: 12px;
+        border-radius: 10px;
     }}
 
     QMenuBar::item:selected,
@@ -125,14 +125,33 @@ def window_style(color):
         color: {color['text-color']};
         border: 1px solid {color['border']};
         border-radius: 16px;
-        padding: 8px 0;
-        min-width: 220px;
+        padding: 2px 2px;
     }}
 
     QMenu::item {{
-        padding: 10px 18px;
-        border-radius: 10px;
-        margin: 2px 6px;
+        padding: 6px 24px 6px 16px;
+        border-radius: 8px;
+        margin: 0;
+        min-height: 28px;
+    }}
+
+    QMenu::icon {{
+        width: 16px;
+        height: 16px;
+        margin: 0 8px 0 4px;
+    }}
+
+    QMenu::right-arrow {{
+        width: 10px;
+        height: 10px;
+        subcontrol-position: right center;
+        margin: 0 8px 0 8pxpx;
+    }}
+
+    QMenu::separator {{
+        height: 1px;
+        background: #E5E7EB;
+        margin: 4px 0;
     }}
 
     QMenu::item:selected {{
