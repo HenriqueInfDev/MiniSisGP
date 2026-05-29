@@ -167,12 +167,10 @@ class MainWindow(QMainWindow):
 
         toolbar = QToolBar("Ações Rápidas")
         toolbar.setMovable(False)
-        toolbar.setContentsMargins(0, 0, 0, 0)
         toolbar.setIconSize(QSize(20, 20))
-        toolbar.setFixedHeight(52)
         toolbar.setStyleSheet(
-            "QToolBar { background-color: #1E3A8A; border-bottom: 1px solid #1E40AF; spacing: 10px; padding: 0px 8px; }"
-            "QToolButton { background: transparent; border: none; min-width: 44px; min-height: 44px; padding: 0px 12px; border-radius: 12px; color: white; }"
+            "QToolBar { background-color: #1E3A8A; border-bottom: 1px solid #1E40AF; spacing: 10px; padding: 8px; }"
+            "QToolButton { background: transparent; border: none; padding: 8px 12px; border-radius: 12px; color: white; }"
             "QToolButton:hover { background-color: rgba(255, 255, 255, 0.15); }"
             "QToolButton:checked { background-color: rgba(255, 255, 255, 0.25); }"
         )
@@ -199,13 +197,12 @@ class MainWindow(QMainWindow):
         sale_action.triggered.connect(partial(self._open_window, "sale_search_window", SaleSearchWindow))
 
         toolbar.addAction(products_action)
-        toolbar.addAction(supplier_action)
-        toolbar.addSeparator()
         toolbar.addAction(entry_action)
+        toolbar.addAction(supplier_action)
         toolbar.addAction(line_action)
         toolbar.addAction(order_action)
-        toolbar.addSeparator()
         toolbar.addAction(sale_action)
+        toolbar.addSeparator()
 
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 

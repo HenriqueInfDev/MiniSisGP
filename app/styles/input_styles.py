@@ -1,3 +1,5 @@
+import os
+
 # ======================================================
 # INPUT PADRÃO
 # ======================================================
@@ -8,6 +10,12 @@ DEFAULTINPUT = {
     "font-weight": "600",
     "border-color": "#D1D9E6",
 }
+
+
+def _get_icon_path(icon_name):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.normpath(os.path.join(current_dir, "..", "images", "icons", icon_name))
+    return icon_path.replace("\\", "/")
 
 
 # ======================================================
@@ -73,14 +81,14 @@ def doublespinbox_style(color):
 
     /* Seta de subir */
     QDoubleSpinBox::up-arrow {{
-        image: url(app/styles/images/icons/doublespin-up-arrow.svg);
+        image: url({_get_icon_path('doublespin-up-arrow.svg')});
         width: 10px;
         height: 10px;
     }}
 
     /* Seta de descer */
     QDoubleSpinBox::down-arrow {{
-        image: url(app/styles/images/icons/doublespin-down-arrow.svg);
+        image: url({_get_icon_path('doublespin-down-arrow.svg')});
         width: 10px;
         height: 10px;
     }}
@@ -128,7 +136,7 @@ def input_date_style(color):
     }}
 
     QDateEdit::down-arrow, QDateTimeEdit::down-arrow {{
-        image: url(app/styles/images/icons/calendar.svg);
+        image: url({_get_icon_path('calendar.svg')});
         width: 14px;
         height: 14px;
     }}

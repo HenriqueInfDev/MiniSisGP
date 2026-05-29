@@ -1,3 +1,5 @@
+import os
+
 # ======================================================
 # PALETA – TEMA CLARO CORPORATIVO
 # ======================================================
@@ -15,6 +17,12 @@ LIGHT = {
     "hover": "#EFF4FF",
     "focus": "#2563EB",
 }
+
+
+def _get_icon_path(icon_name):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.normpath(os.path.join(current_dir, "..", "images", "icons", icon_name))
+    return icon_path.replace("\\", "/")
 
 
 # ======================================================
@@ -178,7 +186,7 @@ def window_style(color):
 
     QDateEdit::down-arrow,
     QDateTimeEdit::down-arrow {{
-        image: url(app/styles/images/icons/calendar.svg);
+        image: url({_get_icon_path('calendar.svg')});
         width: 14px;
         height: 14px;
     }}
