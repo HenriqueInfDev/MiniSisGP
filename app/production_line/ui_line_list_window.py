@@ -14,7 +14,7 @@ from app.utils.ui_utils import (
 )
 
 from app.styles.buttons_styles import (
-    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+    button_style, GREEN, RED, YELLOW
 )
 from app.styles.windows_style import (
     window_style, LIGHT
@@ -86,12 +86,17 @@ class LineListWindow(QWidget):
                     self.lines_table.item(row, col).setForeground(Qt.gray)
 
     def open_edit_window(self):
-        if self.edit_window is None:
-            self.edit_window = LineEditWindow(parent=self)
-            self.edit_window.destroyed.connect(lambda: setattr(self, 'edit_window', None))
-            self.edit_window.show()
-        else:
-            self.edit_window.activateWindow()
+        if self.edit_window is not None:
+            if self.edit_window.isVisible():
+                self.edit_window.activateWindow()
+                return
+            self.edit_window.deleteLater()
+            self.edit_window = None
+
+        self.edit_window = LineEditWindow(parent=self)
+        self.edit_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.edit_window.destroyed.connect(lambda: setattr(self, 'edit_window', None))
+        self.edit_window.show()
 
     def open_edit_window_for_selected(self):
         selected_row = self.lines_table.currentRow()
@@ -99,12 +104,17 @@ class LineListWindow(QWidget):
             show_warning_message(self, "Atenção", "Selecione uma linha de produção para editar.")
             return
         line_id = int(self.lines_table.item(selected_row, 0).text())
-        if self.edit_window is None:
-            self.edit_window = LineEditWindow(line_id=line_id, parent=self)
-            self.edit_window.destroyed.connect(lambda: setattr(self, 'edit_window', None))
-            self.edit_window.show()
-        else:
-            self.edit_window.activateWindow()
+        if self.edit_window is not None:
+            if self.edit_window.isVisible():
+                self.edit_window.activateWindow()
+                return
+            self.edit_window.deleteLater()
+            self.edit_window = None
+
+        self.edit_window = LineEditWindow(line_id=line_id, parent=self)
+        self.edit_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.edit_window.destroyed.connect(lambda: setattr(self, 'edit_window', None))
+        self.edit_window.show()
 
     def delete_selected_line(self):
         selected_row = self.lines_table.currentRow()

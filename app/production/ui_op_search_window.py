@@ -26,6 +26,7 @@ class OPSearchWindow(QWidget):
     
     def __init__(self, selection_mode=False):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.selection_mode = selection_mode
         self.production_order_window = None
         self.setWindowTitle("Pesquisa de Ordens de Produção")
@@ -110,13 +111,18 @@ class OPSearchWindow(QWidget):
     def open_production_order_window(self, op_id=None):
         """Opens the production order window, creating a new one if it doesn't exist."""
         from app.production.ui_order_window import ProductionOrderWindow
-        if self.production_order_window is None:
-            self.production_order_window = ProductionOrderWindow(op_id=op_id)
-            self.production_order_window.destroyed.connect(self.on_production_order_window_closed)
-            self.production_order_window.show()
-        else:
-            self.production_order_window.activateWindow()
-            self.production_order_window.raise_()
+        if self.production_order_window is not None:
+            if self.production_order_window.isVisible():
+                self.production_order_window.activateWindow()
+                self.production_order_window.raise_()
+                return
+            self.production_order_window.deleteLater()
+            self.production_order_window = None
+
+        self.production_order_window = ProductionOrderWindow(op_id=op_id)
+        self.production_order_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.production_order_window.destroyed.connect(self.on_production_order_window_closed)
+        self.production_order_window.show()
 
     def on_production_order_window_closed(self):
         """Handles the closing of the production order window."""

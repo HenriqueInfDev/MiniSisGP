@@ -17,17 +17,13 @@ from app.utils.ui_utils import (
 from PySide6.QtWidgets import QStyledItemDelegate
 
 from app.styles.buttons_styles import (
-    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+    button_style, GREEN, BLUE, RED, YELLOW
 )
 from app.styles.windows_style import (
     window_style, LIGHT
 )
 from app.styles.input_styles import (
     input_style, input_date_style, DEFAULTINPUT
-)
-
-from app.styles.search_field_style import (
-    search_field_style, DEFAULT
 )
 
 class SupplierDelegate(QStyledItemDelegate):
@@ -45,6 +41,7 @@ class SupplierDelegate(QStyledItemDelegate):
 class EntryEditWindow(QWidget):
     def __init__(self, entry_id=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.stock_service = StockService()
         self.supplier_service = SupplierService()
         self.current_entry_id = entry_id

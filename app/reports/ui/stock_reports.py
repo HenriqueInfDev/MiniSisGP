@@ -1,6 +1,5 @@
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QDateEdit
-from PySide6.QtCore import Qt
 from app.database.db import get_db_manager
 from app.reports.export import export_to_pdf, export_to_excel
 from app.utils.ui_utils import get_save_filename, show_success_message

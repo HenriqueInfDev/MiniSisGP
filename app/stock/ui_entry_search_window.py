@@ -26,6 +26,7 @@ from app.styles.input_styles import (
 class EntrySearchWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.stock_service = StockService()
         self.edit_window = None
         self.setWindowTitle("Pesquisa de Entradas de Insumo")
@@ -115,13 +116,18 @@ class EntrySearchWindow(QWidget):
         self.show_edit_window(entry_id=entry_id)
 
     def show_edit_window(self, entry_id):
-        if self.edit_window is None:
-            self.edit_window = EntryEditWindow(entry_id=entry_id)
-            self.edit_window.destroyed.connect(self.on_edit_window_closed)
-            self.edit_window.show()
-        else:
-            self.edit_window.activateWindow()
-            self.edit_window.raise_()
+        if self.edit_window is not None:
+            if self.edit_window.isVisible():
+                self.edit_window.activateWindow()
+                self.edit_window.raise_()
+                return
+            self.edit_window.deleteLater()
+            self.edit_window = None
+
+        self.edit_window = EntryEditWindow(entry_id=entry_id)
+        self.edit_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.edit_window.destroyed.connect(self.on_edit_window_closed)
+        self.edit_window.show()
 
     def on_edit_window_closed(self):
         self.edit_window = None

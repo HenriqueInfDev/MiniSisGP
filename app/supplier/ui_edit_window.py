@@ -1,15 +1,15 @@
 # app/supplier/ui_edit_window.py
 import requests
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,
+    QWidget, QVBoxLayout, QHBoxLayout, QLineEdit,
     QPushButton, QTabWidget, QFormLayout, QMessageBox, QComboBox
 )
 from PySide6.QtGui import QRegularExpressionValidator
-from PySide6.QtCore import QRegularExpression, Qt
+from PySide6.QtCore import QRegularExpression
 from app.supplier.service import SupplierService
 from app.utils.ui_utils import (
     show_error_message, show_success_message, 
-    show_confirmation_message, show_warning_message
+    show_confirmation_message
 )
 
 from app.styles.buttons_styles import (
@@ -31,6 +31,7 @@ from app.styles.search_field_style import (
 class SupplierEditWindow(QWidget):
     def __init__(self, supplier_id=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.supplier_service = SupplierService()
         self.current_supplier_id = supplier_id

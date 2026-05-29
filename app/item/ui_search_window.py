@@ -29,6 +29,7 @@ class ItemSearchWindow(QWidget):
     
     def __init__(self, selection_mode=False, item_type_filter=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.item_service = ItemService()
         self.edit_window = None # Para manter referência da janela de edição
         self.selection_mode = selection_mode
@@ -182,13 +183,19 @@ class ItemSearchWindow(QWidget):
     def show_edit_window(self, item_id):
         """Abre a janela de edição, garantindo que apenas uma instância exista e limpando a referência quando fechada."""
         from .ui_form_window import ItemFormWindow
-        if self.edit_window is None:
-            self.edit_window = ItemFormWindow(item_id=item_id)
-            self.edit_window.destroyed.connect(self.on_edit_window_closed)
-            self.edit_window.show()
-        else:
-            self.edit_window.activateWindow()
-            self.edit_window.raise_()
+
+        if self.edit_window is not None:
+            if self.edit_window.isVisible():
+                self.edit_window.activateWindow()
+                self.edit_window.raise_()
+                return
+            self.edit_window.deleteLater()
+            self.edit_window = None
+
+        self.edit_window = ItemFormWindow(item_id=item_id)
+        self.edit_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.edit_window.destroyed.connect(self.on_edit_window_closed)
+        self.edit_window.show()
 
     def on_edit_window_closed(self):
         """Slot para limpar a referência da janela de edição e recarregar os itens."""

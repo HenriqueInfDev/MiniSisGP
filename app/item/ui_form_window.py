@@ -31,6 +31,7 @@ from app.styles.input_styles import (
 class ItemFormWindow(QWidget):
     def __init__(self, item_id=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.item_service = ItemService()
         self.current_item_id = item_id
@@ -317,14 +318,19 @@ class ItemFormWindow(QWidget):
     def open_material_search(self):
         """Abre a janela de busca de itens em modo de seleção."""
         from .ui_search_window import ItemSearchWindow
-        if self.search_window is None:
-            self.search_window = ItemSearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'])
-            self.search_window.item_selected.connect(self.set_selected_material)
-            self.search_window.destroyed.connect(lambda: setattr(self, 'search_window', None))
-            self.search_window.show()
-        else:
-            self.search_window.activateWindow()
-            self.search_window.raise_()
+        if self.search_window is not None:
+            if self.search_window.isVisible():
+                self.search_window.activateWindow()
+                self.search_window.raise_()
+                return
+            self.search_window.deleteLater()
+            self.search_window = None
+
+        self.search_window = ItemSearchWindow(selection_mode=True, item_type_filter=['Insumo', 'Ambos'])
+        self.search_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.search_window.item_selected.connect(self.set_selected_material)
+        self.search_window.destroyed.connect(lambda: setattr(self, 'search_window', None))
+        self.search_window.show()
 
     def set_selected_material(self, item_data):
         """Recebe o item selecionado da janela de busca e preenche o formulário."""
@@ -450,14 +456,19 @@ class ItemFormWindow(QWidget):
     def open_supplier_search(self):
         """Abre a janela de busca de fornecedores em modo de seleção."""
         from app.supplier.ui_search_window import SupplierSearchWindow
-        if self.search_supplier_window is None:
-            self.search_supplier_window = SupplierSearchWindow(selection_mode=True)
-            self.search_supplier_window.supplier_selected.connect(self.set_selected_supplier)
-            self.search_supplier_window.destroyed.connect(lambda: setattr(self, 'search_supplier_window', None))
-            self.search_supplier_window.show()
-        else:
-            self.search_supplier_window.activateWindow()
-            self.search_supplier_window.raise_()
+        if self.search_supplier_window is not None:
+            if self.search_supplier_window.isVisible():
+                self.search_supplier_window.activateWindow()
+                self.search_supplier_window.raise_()
+                return
+            self.search_supplier_window.deleteLater()
+            self.search_supplier_window = None
+
+        self.search_supplier_window = SupplierSearchWindow(selection_mode=True)
+        self.search_supplier_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.search_supplier_window.supplier_selected.connect(self.set_selected_supplier)
+        self.search_supplier_window.destroyed.connect(lambda: setattr(self, 'search_supplier_window', None))
+        self.search_supplier_window.show()
 
     def set_selected_supplier(self, supplier_data):
         """Recebe o fornecedor selecionado e atualiza a UI."""

@@ -1,7 +1,7 @@
 # app/production_line/ui_line_edit_window.py
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout, QLineEdit,
-    QPushButton, QMessageBox, QTableWidget, QTableWidgetItem, QComboBox,
+    QPushButton, QTableWidget, QTableWidgetItem, QComboBox,
     QHeaderView, QAbstractItemView, QTextEdit
 )
 from PySide6.QtCore import Qt
@@ -9,11 +9,11 @@ from app.production_line import line_operations
 from app.item.ui_search_window import ItemSearchWindow
 from app.utils.ui_utils import (
     NumericTableWidgetItem, show_error_message, show_success_message, 
-    show_confirmation_message, show_warning_message
+    show_warning_message
 )
 
 from app.styles.buttons_styles import (
-    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+    button_style, GREEN, RED
 )
 from app.styles.windows_style import (
     window_style, LIGHT
@@ -28,6 +28,7 @@ from app.styles.search_field_style import (
 class LineEditWindow(QWidget):
     def __init__(self, line_id=None, parent=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.parent = parent  # To refresh the list view
         self.current_line_id = line_id
         self.search_item_window = None
@@ -146,14 +147,19 @@ class LineEditWindow(QWidget):
             show_error_message(self, "Erro", message)
 
     def open_item_search(self):
-        if self.search_item_window is None:
-            self.search_item_window = ItemSearchWindow(selection_mode=True, item_type_filter=['Produto', 'Ambos'])
-            self.search_item_window.item_selected.connect(self.add_item_from_search)
-            self.search_item_window.destroyed.connect(lambda: setattr(self, 'search_item_window', None))
-            self.search_item_window.show()
-        else:
-            self.search_item_window.activateWindow()
-            self.search_item_window.raise_()
+        if self.search_item_window is not None:
+            if self.search_item_window.isVisible():
+                self.search_item_window.activateWindow()
+                self.search_item_window.raise_()
+                return
+            self.search_item_window.deleteLater()
+            self.search_item_window = None
+
+        self.search_item_window = ItemSearchWindow(selection_mode=True, item_type_filter=['Produto', 'Ambos'])
+        self.search_item_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.search_item_window.item_selected.connect(self.add_item_from_search)
+        self.search_item_window.destroyed.connect(lambda: setattr(self, 'search_item_window', None))
+        self.search_item_window.show()
 
     def add_item_from_search(self, item_data):
         item_to_add = {

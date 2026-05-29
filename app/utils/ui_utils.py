@@ -1,8 +1,8 @@
 # app/utils/ui_utils.py
-from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QFileDialog, QPushButton
+from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QFileDialog
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontMetrics
-from app.styles.buttons_styles import button_style, GREEN, RED, YELLOW, GRAY
+from app.styles.buttons_styles import button_style, GREEN, RED, YELLOW
 
 
 def configure_table_columns(table_view, total_width=None, padding=36):

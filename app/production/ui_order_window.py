@@ -2,7 +2,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout, QLineEdit,
     QPushButton, QMessageBox, QHeaderView, QTableWidget, QTableWidgetItem,
-    QLabel, QDateEdit, QAbstractItemView, QInputDialog, QDialogButtonBox,
+    QLabel, QDateEdit, QAbstractItemView, QDialogButtonBox,
     QDialog, QDoubleSpinBox
 )
 from PySide6.QtCore import QDate, Qt
@@ -65,6 +65,7 @@ class FinalizeOrderDialog(QDialog):
 class ProductionOrderWindow(QWidget):
     def __init__(self, op_id=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.current_op_id = op_id
         self.search_item_window = None
         self.search_op_window = None
@@ -245,14 +246,19 @@ class ProductionOrderWindow(QWidget):
         self.update_button_states()
 
     def open_item_search(self):
-        if self.search_item_window is None:
-            self.search_item_window = ItemSearchWindow(selection_mode=True, item_type_filter=['Produto', 'Ambos'])
-            self.search_item_window.item_selected.connect(self.add_item_from_search)
-            self.search_item_window.destroyed.connect(lambda: setattr(self, 'search_item_window', None))
-            self.search_item_window.show()
-        else:
-            self.search_item_window.activateWindow()
-            self.search_item_window.raise_()
+        if self.search_item_window is not None:
+            if self.search_item_window.isVisible():
+                self.search_item_window.activateWindow()
+                self.search_item_window.raise_()
+                return
+            self.search_item_window.deleteLater()
+            self.search_item_window = None
+
+        self.search_item_window = ItemSearchWindow(selection_mode=True, item_type_filter=['Produto', 'Ambos'])
+        self.search_item_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.search_item_window.item_selected.connect(self.add_item_from_search)
+        self.search_item_window.destroyed.connect(lambda: setattr(self, 'search_item_window', None))
+        self.search_item_window.show()
 
     def add_item_from_search(self, item_data):
         for row in range(self.items_table.rowCount()):
@@ -300,14 +306,19 @@ class ProductionOrderWindow(QWidget):
 
     def open_op_search(self):
         from app.production.ui_op_search_window import OPSearchWindow
-        if self.search_op_window is None:
-            self.search_op_window = OPSearchWindow(selection_mode=True)
-            self.search_op_window.op_selected.connect(self.load_op_by_id)
-            self.search_op_window.destroyed.connect(lambda: setattr(self, 'search_op_window', None))
-            self.search_op_window.show()
-        else:
-            self.search_op_window.activateWindow()
-            self.search_op_window.raise_()
+        if self.search_op_window is not None:
+            if self.search_op_window.isVisible():
+                self.search_op_window.activateWindow()
+                self.search_op_window.raise_()
+                return
+            self.search_op_window.deleteLater()
+            self.search_op_window = None
+
+        self.search_op_window = OPSearchWindow(selection_mode=True)
+        self.search_op_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.search_op_window.op_selected.connect(self.load_op_by_id)
+        self.search_op_window.destroyed.connect(lambda: setattr(self, 'search_op_window', None))
+        self.search_op_window.show()
 
     def load_op_by_id(self, op_id):
         self.current_op_id = op_id

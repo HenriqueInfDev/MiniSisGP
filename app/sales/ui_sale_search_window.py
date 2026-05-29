@@ -26,6 +26,7 @@ from app.styles.input_styles import (
 class SaleSearchWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.sale_service = SaleService()
         self.edit_window = None
         self.setWindowTitle("Pesquisa de Saídas de Produto")
@@ -112,13 +113,18 @@ class SaleSearchWindow(QWidget):
         self.show_edit_window(sale_id=sale_id)
 
     def show_edit_window(self, sale_id):
-        if self.edit_window is None:
-            self.edit_window = SaleEditWindow(sale_id=sale_id)
-            self.edit_window.destroyed.connect(self.on_edit_window_closed)
-            self.edit_window.show()
-        else:
-            self.edit_window.activateWindow()
-            self.edit_window.raise_()
+        if self.edit_window is not None:
+            if self.edit_window.isVisible():
+                self.edit_window.activateWindow()
+                self.edit_window.raise_()
+                return
+            self.edit_window.deleteLater()
+            self.edit_window = None
+
+        self.edit_window = SaleEditWindow(sale_id=sale_id)
+        self.edit_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.edit_window.destroyed.connect(self.on_edit_window_closed)
+        self.edit_window.show()
 
     def on_edit_window_closed(self):
         self.edit_window = None

@@ -14,7 +14,7 @@ from app.utils.ui_utils import (
 from app.utils.date_utils import BRAZILIAN_DATE_FORMAT, format_qdate_for_db
 
 from app.styles.buttons_styles import (
-    button_style, GREEN, BLUE, RED, YELLOW, GRAY
+    button_style, GREEN, BLUE, RED
 )
 from app.styles.windows_style import (
     window_style, LIGHT
@@ -26,6 +26,7 @@ from app.styles.input_styles import (
 class SaleEditWindow(QWidget):
     def __init__(self, sale_id=None):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.sale_service = SaleService()
         self.current_sale_id = sale_id

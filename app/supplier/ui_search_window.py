@@ -34,6 +34,7 @@ class SupplierSearchWindow(QWidget):
 
     def __init__(self, selection_mode=False):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.supplier_service = SupplierService()
         self.edit_window = None
         self.selection_mode = selection_mode
@@ -152,13 +153,18 @@ class SupplierSearchWindow(QWidget):
         self.show_edit_window(supplier_id=supplier_id)
 
     def show_edit_window(self, supplier_id):
-        if self.edit_window is None:
-            self.edit_window = SupplierEditWindow(supplier_id=supplier_id)
-            self.edit_window.destroyed.connect(self.on_edit_window_closed)
-            self.edit_window.show()
-        else:
-            self.edit_window.activateWindow()
-            self.edit_window.raise_()
+        if self.edit_window is not None:
+            if self.edit_window.isVisible():
+                self.edit_window.activateWindow()
+                self.edit_window.raise_()
+                return
+            self.edit_window.deleteLater()
+            self.edit_window = None
+
+        self.edit_window = SupplierEditWindow(supplier_id=supplier_id)
+        self.edit_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.edit_window.destroyed.connect(self.on_edit_window_closed)
+        self.edit_window.show()
 
     def on_edit_window_closed(self):
         self.edit_window = None

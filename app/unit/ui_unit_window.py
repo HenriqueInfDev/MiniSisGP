@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.unit.unit_service import UnitService
 from app.utils.ui_utils import (
-    show_error_message, show_success_message, 
+    show_error_message, 
     show_confirmation_message, show_warning_message,
     configure_table_columns
 )

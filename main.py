@@ -6,14 +6,10 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QLabel,
     QWidget,
-    QPushButton,
-    QFrame,
-    QHBoxLayout,
     QVBoxLayout,
-    QSizePolicy,
     QToolBar,
 )
-from PySide6.QtGui import QAction, QIcon, QPixmap, QColor, QImage
+from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize
 from functools import partial
 
@@ -50,7 +46,6 @@ class MainWindow(QMainWindow):
         # Converter para RGBA para aplicar cor
         if not pixmap.isNull():
             # Em PySide6, usamos convertToFormat da imagem ou criamos nova imagem
-            from PySide6.QtGui import QImage
             image = pixmap.toImage()
             # Aplicar filtro de cor branca
             for x in range(image.width()):
