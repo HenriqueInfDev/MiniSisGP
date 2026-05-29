@@ -196,13 +196,14 @@ class MainWindow(QMainWindow):
         order_action.triggered.connect(partial(self._open_window, "op_search_window", OPSearchWindow))
         sale_action.triggered.connect(partial(self._open_window, "sale_search_window", SaleSearchWindow))
 
-        toolbar.addAction(products_action)
-        toolbar.addAction(entry_action)
         toolbar.addAction(supplier_action)
+        toolbar.addAction(products_action)
+        toolbar.addSeparator()
+        toolbar.addAction(entry_action)
         toolbar.addAction(line_action)
         toolbar.addAction(order_action)
-        toolbar.addAction(sale_action)
         toolbar.addSeparator()
+        toolbar.addAction(sale_action)
 
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 
