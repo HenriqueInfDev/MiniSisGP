@@ -36,12 +36,7 @@ class MainWindow(QMainWindow):
 
     def _resolve_icon(self, icon_name):
         project_root = os.path.abspath(os.path.dirname(__file__))
-        # Tenta primeiro em app/images/icons
-        icon_path = os.path.join(project_root, "app", "images", "icons", icon_name)
-        if not os.path.exists(icon_path):
-            # Se não encontrar, tenta em app/styles/images/icons
-            icon_path = os.path.join(project_root, "app", "styles", "images", "icons", icon_name)
-        return icon_path
+        return os.path.join(project_root, "app", "images", "icons", icon_name)
 
     def _load_white_icon(self, icon_name):
         """Carrega um ícone SVG e o colore de branco para a toolbar"""
