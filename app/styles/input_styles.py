@@ -3,16 +3,16 @@
 # ======================================================
 
 DEFAULTINPUT = {
-    "border-radius": "6px",
-    "padding": "6px 6px",
-    "font-weight": "500",
-    "border-color": "#B3B3B3",
+    "border-radius": "14px",
+    "padding": "10px 14px",
+    "font-weight": "600",
+    "border-color": "#D1D9E6",
 }
 
 
 # ======================================================
 # QLINEEDIT / QTEXTEDIT
-# ======================================================
+# ==================================================
 
 def input_style(color):
     """Retorna QSS padrão para inputs de texto"""
@@ -22,6 +22,17 @@ def input_style(color):
         padding: {color['padding']};
         font-weight: {color['font-weight']};
         font-size: 14px;
+        border: 1px solid {color['border-color']};
+        background-color: #FFFFFF;
+        color: #0F172A;
+    }}
+
+    QLineEdit:hover, QTextEdit:hover {{
+        border-color: #A3BFFA;
+    }}
+
+    QLineEdit:focus, QTextEdit:focus {{
+        border-color: #2563EB;
     }}
     """
 

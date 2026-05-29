@@ -1,16 +1,19 @@
 # ======================================================
-# PALETA – TEMA CLARO
+# PALETA – TEMA CLARO CORPORATIVO
 # ======================================================
 
 LIGHT = {
-    "background": "#F2F2F2",
-    "background-menu": "#EBEBEB",
+    "background": "#F5F8FF",
+    "background-menu": "#FFFFFF",
     "surface": "#FFFFFF",
-    "border": "#B3B3B3",
-    "text-color": "#1F1F1F",
-    "text-muted": "#5F6368",
-    "hover": "#E6E6E6",
-    "focus": "#B0B0B0",
+    "surface-alt": "#F8FAFF",
+    "border": "#D1D9E6",
+    "text-color": "#0F172A",
+    "text-muted": "#475569",
+    "accent": "#2563EB",
+    "accent-soft": "#E8F1FF",
+    "hover": "#EFF4FF",
+    "focus": "#2563EB",
 }
 
 
@@ -27,7 +30,7 @@ def window_style(color):
     QWidget {{
         background-color: {color['background']};
         color: {color['text-color']};
-        font-family: "Segoe UI", "Inter", "Arial";
+        font-family: "Inter", "Segoe UI", "Arial", sans-serif;
     }}
 
     QLabel,
@@ -48,6 +51,11 @@ def window_style(color):
         font-size: 14px;
     }}
 
+    QLabel {{
+        color: {color['text-color']};
+        background-color: transparent;
+    }}
+
     /* ==================================================
        MAIN WINDOW
        ================================================== */
@@ -56,14 +64,27 @@ def window_style(color):
         background-color: {color['background']};
     }}
 
-    /* ==================================================
-       LABELS
-       ================================================== */
+    QToolBar {{
+        background-color: {color['background-menu']};
+        border-bottom: 1px solid {color['border']};
+        padding: 6px 10px;
+    }}
 
-    QLabel {{
+    QToolButton {{
+        background: transparent;
+        border: none;
+        border-radius: 12px;
+        padding: 9px 14px;
         color: {color['text-color']};
-        font-weight: 700;
-        background-color: transparent;
+    }}
+
+    QToolButton:hover {{
+        background-color: {color['hover']};
+    }}
+
+    QToolButton:checked {{
+        background-color: {color['accent-soft']};
+        color: {color['accent']};
     }}
 
     /* ==================================================
@@ -73,43 +94,42 @@ def window_style(color):
     QMenuBar {{
         background-color: {color['background-menu']};
         color: {color['text-color']};
-        font: 14px "Segoe UI", "Inter", "Arial";
-        font-weight: normal;
+        font: 14px "Inter", "Segoe UI", "Arial";
+        font-weight: 600;
+        padding: 0 16px;
+        border-bottom: 1px solid {color['border']};
     }}
 
     QMenuBar::item {{
-        font: 14px "Segoe UI", "Inter", "Arial";
-        font-weight: normal;
-        padding: 4px 8px;
-        min-width: 90px;
+        padding: 10px 16px;
+        margin: 0 6px;
+        border-radius: 12px;
     }}
 
-    QMenuBar::item:hover,
     QMenuBar::item:selected,
-    QMenuBar::item:pressed,
-    QMenuBar::item:open {{
-        background-color: {color['hover']};
-        font: 14px "Segoe UI", "Inter", "Arial";
-        font-weight: normal;
-    }}
-
-    QMenuBar::item:!selected {{
-        font: 14px "Segoe UI", "Inter", "Arial";
-        font-weight: normal;
+    QMenuBar::item:pressed {{
+        background-color: {color['accent-soft']};
+        color: {color['accent']};
     }}
 
     QMenu {{
         background-color: {color['surface']};
         color: {color['text-color']};
         border: 1px solid {color['border']};
+        border-radius: 16px;
+        padding: 8px 0;
+        min-width: 220px;
     }}
 
     QMenu::item {{
-        padding: 3px 20px 3px 10px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        margin: 2px 6px;
     }}
 
     QMenu::item:selected {{
-        background-color: {color['hover']};
+        background-color: {color['accent-soft']};
+        color: {color['text-color']};
     }}
 
     /* ==================================================
@@ -118,9 +138,9 @@ def window_style(color):
 
     QGroupBox {{
         border: 1px solid {color['border']};
-        border-radius: 6px;
-        margin-top: 12px;
-        padding: 10px;
+        border-radius: 16px;
+        margin-top: 18px;
+        padding: 16px;
         background-color: {color['surface']};
     }}
 
@@ -128,7 +148,7 @@ def window_style(color):
         subcontrol-origin: margin;
         subcontrol-position: top left;
         color: {color['text-color']};
-        font-weight: 500;
+        font-weight: 700;
     }}
 
     /* ==================================================
@@ -142,7 +162,33 @@ def window_style(color):
     QDateTimeEdit {{
         background-color: {color['surface']};
         border: 1px solid {color['border']};
-        border-radius: 4px;
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: {color['text-color']};
+    }}
+
+    QDateEdit::drop-down,
+    QDateTimeEdit::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: right center;
+        width: 28px;
+        border-left: 1px solid {color['border']};
+        background-color: #F5F5F5;
+    }}
+
+    QDateEdit::down-arrow,
+    QDateTimeEdit::down-arrow {{
+        image: url(app/styles/images/icons/calendar.svg);
+        width: 14px;
+        height: 14px;
+    }}
+
+    QLineEdit:hover,
+    QDoubleSpinBox:hover,
+    QTextEdit:hover,
+    QDateEdit:hover,
+    QDateTimeEdit:hover {{
+        border-color: {color['focus']};
     }}
 
     QLineEdit:focus,
@@ -150,12 +196,14 @@ def window_style(color):
     QTextEdit:focus,
     QDateEdit:focus,
     QDateTimeEdit:focus {{
-        border-color: {color['focus']};
+        border-color: {color['accent']};
+        outline: none;
     }}
 
     QFormLayout QLabel {{
-        padding-right: 8px;
+        padding-right: 10px;
         color: {color['text-muted']};
+        font-weight: 600;
     }}
 
     /* ==================================================
@@ -164,23 +212,26 @@ def window_style(color):
 
     QTabWidget::pane {{
         border: 1px solid {color['border']};
+        border-radius: 18px;
         background: {color['surface']};
     }}
 
     QTabWidget::pane QWidget {{
-        background-color: #FFFFFF;
+        background-color: {color['surface']};
     }}
 
     QTabBar::tab {{
-        background: {color['background-menu']};
-        padding: 6px 14px;
+        background: {color['surface-alt']};
+        padding: 10px 18px;
         border: 1px solid {color['border']};
-        border-bottom: none;
+        border-radius: 14px;
+        margin-right: 8px;
     }}
 
     QTabBar::tab:selected {{
         background: {color['surface']};
-        font-weight: 500;
+        font-weight: 700;
+        color: {color['accent']};
     }}
 
     QTabBar::tab:!selected {{
@@ -194,51 +245,45 @@ def window_style(color):
     QTableView,
     QTableWidget {{
         background-color: {color['surface']};
-        alternate-background-color: {color['background']};
+        alternate-background-color: {color['surface-alt']};
         border: 1px solid {color['border']};
         gridline-color: {color['border']};
         outline: 0;
     }}
 
-    /* Itens (inclui borda esquerda) */
     QTableView::item,
     QTableWidget::item {{
-        border-left: 1px solid {color['border']};
-        border-bottom: 1px solid {color['border']};
-        padding: 4px 6px;
+        padding: 12px 14px;
         color: {color['text-color']};
+        border-bottom: 1px solid {color['border']};
     }}
 
-    /* Hover leve nas linhas */
     QTableView::item:hover,
     QTableWidget::item:hover {{
-        background-color: #F4F4F4;
+        background-color: {color['hover']};
     }}
 
-    /* Seleção */
     QTableView::item:selected,
     QTableWidget::item:selected {{
-        background-color: #D6D6D6;
+        background-color: {color['accent-soft']};
         color: {color['text-color']};
     }}
 
-    /* Seleção sem foco */
     QTableView::item:selected:!active,
     QTableWidget::item:selected:!active {{
-        background-color: #D6D6D6;
+        background-color: {color['accent-soft']};
     }}
 
-    /* Cabeçalho */
     QHeaderView::section {{
-        background-color: {color['background-menu']};
-        padding: 4px 6px;
-        border: 1px solid {color['border']};
-        font-weight: 500;
+        background-color: {color['accent-soft']};
+        padding: 10px 14px;
+        border: none;
+        color: {color['accent']};
+        font-weight: 700;
     }}
 
-    /* Canto superior esquerdo da tabela */
     QTableCornerButton::section {{
-        background-color: {color['background-menu']};
-        border: 1px solid {color['border']};
+        background-color: {color['accent-soft']};
+        border: none;
     }}
     """

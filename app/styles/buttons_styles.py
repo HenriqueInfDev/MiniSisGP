@@ -3,43 +3,43 @@
 # ======================================================
 
 GREEN = {
-    "default": "#198754",
-    "hover": "#157347",
-    "pressed": "#146c43",
-    "disabled": "#8fd3b0",
+    "default": "#16A34A",
+    "hover": "#15803D",
+    "pressed": "#166534",
+    "disabled": "#A7F3D0",
     "text": "white",
 }
 
 BLUE = {
-    "default": "#0d6efd",
-    "hover": "#0b5ed7",
-    "pressed": "#0a58ca",
-    "disabled": "#9ec5fe",
+    "default": "#2563EB",
+    "hover": "#1D4ED8",
+    "pressed": "#1E40AF",
+    "disabled": "#93C5FD",
     "text": "white",
 }
 
 GRAY = {
-    "default": "#6c757d",
-    "hover": "#5c636a",
-    "pressed": "#565e64",
-    "disabled": "#ced4da",
+    "default": "#475569",
+    "hover": "#334155",
+    "pressed": "#1E293B",
+    "disabled": "#CBD5E1",
     "text": "white",
 }
 
 RED = {
-    "default": "#dc3545",
-    "hover": "#bb2d3b",
-    "pressed": "#b02a37",
-    "disabled": "#f1aeb5",
+    "default": "#DC2626",
+    "hover": "#B91C1C",
+    "pressed": "#991B1B",
+    "disabled": "#FCA5A5",
     "text": "white",
 }
 
 YELLOW = {
-    "default": "#ffc107",
-    "hover": "#e0a800",
-    "pressed": "#d39e00",
-    "disabled": "#ffe69c",
-    "text": "#212529",  # texto escuro
+    "default": "#F59E0B",
+    "hover": "#D97706",
+    "pressed": "#B45309",
+    "disabled": "#FCD34D",
+    "text": "#0F172A",
 }
 
 # ======================================================
@@ -52,10 +52,12 @@ def button_style(color):
     QPushButton {{
         background-color: {color['default']};
         color: {color.get('text', 'white')};
-        border-radius: 6px;
-        padding: 6px 12px;
-        font-weight: 500;
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-weight: 700;
         font-size: 14px;
+        min-height: 40px;
+        border: none;
     }}
 
     QPushButton:hover {{
@@ -68,6 +70,6 @@ def button_style(color):
 
     QPushButton:disabled {{
         background-color: {color['disabled']};
-        color: #adb5bd;
+        color: #94A3B8;
     }}
     """

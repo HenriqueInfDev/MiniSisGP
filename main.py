@@ -1,8 +1,20 @@
 # main.py
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
+import os
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QLabel,
+    QWidget,
+    QPushButton,
+    QFrame,
+    QHBoxLayout,
+    QVBoxLayout,
+    QSizePolicy,
+    QToolBar,
+)
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from functools import partial
 
 from app.styles.windows_style import (
@@ -14,12 +26,17 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.windows = {}
         self.setWindowTitle("GP - MiniSis")
-        self.setWindowIcon(QIcon('app/assets/logo.png'))
-        self.setGeometry(100, 100, 1024, 768)
+        self.setWindowIcon(QIcon(self._resolve_icon('home.svg')))
+        self.setGeometry(100, 100, 1200, 820)
         self.setStyleSheet(window_style(LIGHT))
         self.setup_menus()
+        self.setup_toolbar()
         self.setup_central_widget()
         self.statusBar().showMessage("Pronto")
+
+    def _resolve_icon(self, icon_name):
+        project_root = os.path.abspath(os.path.dirname(__file__))
+        return os.path.join(project_root, "app", "styles", "images", "icons", icon_name)
 
     def setup_menus(self):
         menu_bar = self.menuBar()
@@ -28,10 +45,10 @@ class MainWindow(QMainWindow):
         registers_menu = menu_bar.addMenu("&Cadastros")
         
         from app.item.ui_search_window import ItemSearchWindow
-        self._add_menu_action(registers_menu, "Produtos", "item_search_window", ItemSearchWindow)
+        self._add_menu_action(registers_menu, "Produtos", "item_search_window", ItemSearchWindow, 'registro_produto_icon.svg')
         
         from app.supplier.ui_search_window import SupplierSearchWindow
-        self._add_menu_action(registers_menu, "Fornecedores", "supplier_search_window", SupplierSearchWindow)
+        self._add_menu_action(registers_menu, "Fornecedores", "supplier_search_window", SupplierSearchWindow, 'fornecedor_registro.svg')
         
         registers_menu.addSeparator()
 
@@ -42,20 +59,20 @@ class MainWindow(QMainWindow):
         movement_menu = menu_bar.addMenu("&Movimento")
         
         from app.stock.ui_entry_search_window import EntrySearchWindow
-        self._add_menu_action(movement_menu, "Entrada de Insumos", "stock_entry_window", EntrySearchWindow)
+        self._add_menu_action(movement_menu, "Entrada de Insumos", "stock_entry_window", EntrySearchWindow, 'entrada_insumos.svg')
 
         movement_menu.addSeparator()
 
         from app.production_line.ui_line_list_window import LineListWindow
-        self._add_menu_action(movement_menu, "Linhas de Produção", "line_list_window", LineListWindow)
+        self._add_menu_action(movement_menu, "Linhas de Produção", "line_list_window", LineListWindow, 'linha_producao_icon.svg')
         
         from app.production.ui_op_search_window import OPSearchWindow
-        self._add_menu_action(movement_menu, "Ordem de Produção", "op_search_window", OPSearchWindow)
+        self._add_menu_action(movement_menu, "Ordem de Produção", "op_search_window", OPSearchWindow, 'order_producao.svg')
         
         movement_menu.addSeparator()
 
         from app.sales.ui_sale_search_window import SaleSearchWindow
-        self._add_menu_action(movement_menu, "Saída de Produtos", "sale_search_window", SaleSearchWindow)
+        self._add_menu_action(movement_menu, "Saída de Produtos", "sale_search_window", SaleSearchWindow, 'saida_produtos.svg')
 
         # Menu Relatórios
         reports_menu = menu_bar.addMenu("&Relatórios")
@@ -97,27 +114,81 @@ class MainWindow(QMainWindow):
         # Menu Configurações
         # settings_menu = menu_bar.addMenu("&Configurações")
 
-    def _add_menu_action(self, menu, text, window_name, window_class):
+    def _add_menu_action(self, menu, text, window_name, window_class, icon_name=None):
         action = QAction(text, self)
+        if icon_name:
+            action.setIcon(QIcon(self._resolve_icon(icon_name)))
         action.triggered.connect(partial(self._open_window, window_name, window_class))
         menu.addAction(action)
 
-    def setup_central_widget(self):
-        central_widget = QLabel("Bem-vindo ao MiniSis - Gestão de Produção")
-        central_widget.setStyleSheet("font-size: 30px;")
-        central_widget.setAlignment(Qt.AlignCenter)
-        self.setCentralWidget(central_widget)
-
     def _open_window(self, window_name, window_class):
-        if window_name not in self.windows or self.windows[window_name] is None:
-            instance = window_class()
-            instance.setAttribute(Qt.WA_DeleteOnClose)
-            self.windows[window_name] = instance
-            instance.destroyed.connect(lambda: self.windows.pop(window_name, None))
-            instance.show()
-        else:
-            self.windows[window_name].activateWindow()
-            self.windows[window_name].raise_()
+        if window_name not in self.windows:
+            self.windows[window_name] = window_class() if callable(window_class) else window_class
+
+        window = self.windows[window_name]
+        window.show()
+        window.raise_()
+
+    def setup_toolbar(self):
+        from app.item.ui_search_window import ItemSearchWindow
+        from app.reports.ui.stock_reports import StockReportWindow
+        from app.supplier.ui_search_window import SupplierSearchWindow
+
+        toolbar = QToolBar("Ações Rápidas")
+        toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(20, 20))
+        toolbar.setStyleSheet(
+            "QToolBar { background-color: #FFFFFF; border-bottom: 1px solid #D1D9E6; spacing: 10px; padding: 8px; }"
+            "QToolButton { background: transparent; border: none; padding: 8px 12px; border-radius: 12px; color: #0F172A; }"
+            "QToolButton:hover { background-color: #EFF4FF; }"
+            "QToolButton:checked { background-color: #E0E7FF; }"
+        )
+
+        dashboard_action = QAction(QIcon(self._resolve_icon('home.svg')), "Dashboard", self)
+        products_action = QAction(QIcon(self._resolve_icon('registro_produto_icon.svg')), "Produtos", self)
+        reports_action = QAction(QIcon(self._resolve_icon('reports.svg')), "Relatórios", self)
+        supplier_action = QAction(QIcon(self._resolve_icon('fornecedor_registro.svg')), "Fornecedores", self)
+
+        dashboard_action.triggered.connect(self.show_home)
+        products_action.triggered.connect(partial(self._open_window, "item_search_window", ItemSearchWindow))
+        reports_action.triggered.connect(partial(self._open_window, "stock_report_window", lambda: StockReportWindow("Estoque Atual")))
+        supplier_action.triggered.connect(partial(self._open_window, "supplier_search_window", SupplierSearchWindow))
+
+        toolbar.addAction(dashboard_action)
+        toolbar.addAction(products_action)
+        toolbar.addAction(reports_action)
+        toolbar.addAction(supplier_action)
+        toolbar.addSeparator()
+
+        self.addToolBar(Qt.TopToolBarArea, toolbar)
+
+    def show_home(self):
+        self.setCentralWidget(self.central_widget)
+
+    def setup_central_widget(self):
+        self.central_widget = QWidget()
+        central_layout = QVBoxLayout(self.central_widget)
+        central_layout.setContentsMargins(24, 24, 24, 24)
+        central_layout.setSpacing(20)
+        central_layout.addStretch(1)
+
+        title = QLabel("Bem-vindo ao SOFME")
+        title.setStyleSheet("font-size: 32px; font-weight: 800; color: #0F172A; text-align: center;")
+        title.setAlignment(Qt.AlignCenter)
+        
+        subtitle = QLabel(
+            "Sistema de organização financeira para microempreendedor."
+        )
+        subtitle.setWordWrap(True)
+        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setStyleSheet("font-size: 16px; color: #475569; line-height: 1.8;")
+
+        central_layout.addWidget(title)
+        central_layout.addWidget(subtitle)
+        central_layout.addStretch(1)
+
+        self.setCentralWidget(self.central_widget)
+
 
 import logging
 
