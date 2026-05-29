@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QToolBar,
 )
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QPixmap, QColor, QImage
 from PySide6.QtCore import Qt, QSize
 from functools import partial
 
@@ -36,7 +36,33 @@ class MainWindow(QMainWindow):
 
     def _resolve_icon(self, icon_name):
         project_root = os.path.abspath(os.path.dirname(__file__))
-        return os.path.join(project_root, "app", "images", "icons", icon_name)
+        # Tenta primeiro em app/images/icons
+        icon_path = os.path.join(project_root, "app", "images", "icons", icon_name)
+        if not os.path.exists(icon_path):
+            # Se não encontrar, tenta em app/styles/images/icons
+            icon_path = os.path.join(project_root, "app", "styles", "images", "icons", icon_name)
+        return icon_path
+
+    def _load_white_icon(self, icon_name):
+        """Carrega um ícone SVG e o colore de branco para a toolbar"""
+        icon_path = self._resolve_icon(icon_name)
+        pixmap = QPixmap(icon_path)
+        # Converter para RGBA para aplicar cor
+        if not pixmap.isNull():
+            # Em PySide6, usamos convertToFormat da imagem ou criamos nova imagem
+            from PySide6.QtGui import QImage
+            image = pixmap.toImage()
+            # Aplicar filtro de cor branca
+            for x in range(image.width()):
+                for y in range(image.height()):
+                    color = image.pixelColor(x, y)
+                    if color.alpha() > 0:  # Se não é totalmente transparente
+                        color.setRed(255)
+                        color.setGreen(255)
+                        color.setBlue(255)
+                        image.setPixelColor(x, y, color)
+            pixmap = QPixmap.fromImage(image)
+        return QIcon(pixmap)
 
     def setup_menus(self):
         menu_bar = self.menuBar()
@@ -143,25 +169,25 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         toolbar.setIconSize(QSize(20, 20))
         toolbar.setStyleSheet(
-            "QToolBar { background-color: #FFFFFF; border-bottom: 1px solid #D1D9E6; spacing: 10px; padding: 8px; }"
-            "QToolButton { background: transparent; border: none; padding: 8px 12px; border-radius: 12px; color: #0F172A; }"
-            "QToolButton:hover { background-color: #EFF4FF; }"
-            "QToolButton:checked { background-color: #E0E7FF; }"
+            "QToolBar { background-color: #1E3A8A; border-bottom: 1px solid #1E40AF; spacing: 10px; padding: 8px; }"
+            "QToolButton { background: transparent; border: none; padding: 8px 12px; border-radius: 12px; color: white; }"
+            "QToolButton:hover { background-color: rgba(255, 255, 255, 0.15); }"
+            "QToolButton:checked { background-color: rgba(255, 255, 255, 0.25); }"
         )
 
-        products_action = QAction(QIcon(self._resolve_icon('registro_produto_icon.svg')), "Produtos", self)
-        entry_action = QAction(QIcon(self._resolve_icon('entrada_insumo.svg')), "Entrada de Insumos", self)
-        supplier_action = QAction(QIcon(self._resolve_icon('fornecedor_registro.svg')), "Fornecedores", self)
-        line_action = QAction(QIcon(self._resolve_icon('linha_producao_icon.svg')), "Linhas de Produção", self)
-        order_action = QAction(QIcon(self._resolve_icon('ordem_producao_icon.svg')), "Ordem de Produção", self)
-        sale_action = QAction(QIcon(self._resolve_icon('saida_produtos_icon.svg')), "Saída de Produtos", self)
+        products_action = QAction(self._load_white_icon('registro_produto_icon.svg'), "Produtos", self)
+        entry_action = QAction(self._load_white_icon('entrada_insumo.svg'), "Entrada de Insumos", self)
+        supplier_action = QAction(self._load_white_icon('fornecedor_registro.svg'), "Fornecedores", self)
+        line_action = QAction(self._load_white_icon('linha_producao_icon.svg'), "Linhas de Produção", self)
+        order_action = QAction(self._load_white_icon('ordem_producao_icon.svg'), "Ordem de Produção", self)
+        sale_action = QAction(self._load_white_icon('saida_produtos_icon.svg'), "Saída de Produtos", self)
 
-        products_action.setToolTip("Gerenciar Produtos")
-        entry_action.setToolTip("Registrar Entrada de Insumos")
-        supplier_action.setToolTip("Gerenciar Fornecedores")
-        line_action.setToolTip("Gerenciar Linhas de Produção")
-        order_action.setToolTip("Gerenciar Ordens de Produção")
-        sale_action.setToolTip("Registrar Saída de Produtos")
+        products_action.setToolTip("PRODUTOS")
+        entry_action.setToolTip("ENTRADA DE INSUMOS")
+        supplier_action.setToolTip("FORNECEDORES")
+        line_action.setToolTip("LINHAS DE PRODUÇÃO")
+        order_action.setToolTip("ORDENS DE PRODUÇÃO")
+        sale_action.setToolTip("SAÍDA DE PRODUTOS")
 
         products_action.triggered.connect(partial(self._open_window, "item_search_window", ItemSearchWindow))
         entry_action.triggered.connect(partial(self._open_window, "stock_entry_window", EntrySearchWindow))
