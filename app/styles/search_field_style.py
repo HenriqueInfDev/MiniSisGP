@@ -30,6 +30,7 @@ def search_field_style(c):
         border-radius: {c['border-radius']};
         background-color: white;
         color: #0F172A;
+        min-height: 34px;
     }}
 
     QComboBox:hover {{

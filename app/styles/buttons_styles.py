@@ -53,10 +53,10 @@ def button_style(color):
         background-color: {color['default']};
         color: {color.get('text', 'white')};
         border-radius: 12px;
-        padding: 10px 16px;
+        padding: 8px 16px;
         font-weight: 700;
         font-size: 14px;
-        min-height: 40px;
+        min-height: 34px;
         border: none;
     }}
 

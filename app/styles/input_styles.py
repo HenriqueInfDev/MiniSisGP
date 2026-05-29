@@ -33,6 +33,7 @@ def input_style(color):
         border: 1px solid {color['border-color']};
         background-color: #FFFFFF;
         color: #0F172A;
+        min-height: 34px;
     }}
 
     QLineEdit:hover, QTextEdit:hover {{
@@ -120,6 +121,10 @@ def input_date_style(color):
 
     QDateEdit:hover, QDateTimeEdit:hover {{
         border-color: #999999;
+    }}
+
+    QDateEdit, QDateTimeEdit {{
+        min-height: 34px;
     }}
 
     QDateEdit:focus, QDateTimeEdit:focus {{

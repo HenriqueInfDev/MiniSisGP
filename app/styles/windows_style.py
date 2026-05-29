@@ -164,7 +164,7 @@ def window_style(color):
        ================================================== */
 
     QLineEdit,
-    QDoubleSpinBox,
+    QComboBox,    QComboBox,    QDoubleSpinBox,
     QTextEdit,
     QDateEdit,
     QDateTimeEdit {{
@@ -173,6 +173,7 @@ def window_style(color):
         border-radius: 14px;
         padding: 12px 14px;
         color: {color['text-color']};
+        min-height: 34px;
     }}
 
     QDateEdit::drop-down,
