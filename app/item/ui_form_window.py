@@ -31,7 +31,7 @@ from app.styles.input_styles import (
 class ItemFormWindow(QWidget):
     def __init__(self, item_id=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
+
         self.item_service = ItemService()
         self.current_item_id = item_id
         self.has_unsaved_changes = False

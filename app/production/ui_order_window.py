@@ -65,7 +65,6 @@ class FinalizeOrderDialog(QDialog):
 class ProductionOrderWindow(QWidget):
     def __init__(self, op_id=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.current_op_id = op_id
         self.search_item_window = None
         self.search_op_window = None

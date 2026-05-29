@@ -34,7 +34,6 @@ class SupplierSearchWindow(QWidget):
 
     def __init__(self, selection_mode=False):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.supplier_service = SupplierService()
         self.edit_window = None
         self.selection_mode = selection_mode

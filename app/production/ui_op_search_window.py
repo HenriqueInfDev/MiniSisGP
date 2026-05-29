@@ -26,7 +26,6 @@ class OPSearchWindow(QWidget):
     
     def __init__(self, selection_mode=False):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.selection_mode = selection_mode
         self.production_order_window = None
         self.setWindowTitle("Pesquisa de Ordens de Produção")

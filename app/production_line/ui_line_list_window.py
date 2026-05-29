@@ -23,7 +23,6 @@ from app.styles.windows_style import (
 class LineListWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.edit_window = None
         self.order_window = None
         self.setWindowTitle("Linhas de Produção")

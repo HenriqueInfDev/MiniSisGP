@@ -1,6 +1,7 @@
 # ======================================================
 # SEARCH FIELD / COMBOBOX
 # ======================================================
+import os
 
 DEFAULT = {
     "border-radius": "14px",
@@ -10,7 +11,16 @@ DEFAULT = {
 }
 
 
+def _get_icon_path(icon_name):
+    """Resolve o caminho absoluto de um ícone"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.join(current_dir, "images", "icons", icon_name)
+    # Converter para caminho com forward slashes para o QSS
+    return icon_path.replace("\\", "/")
+
+
 def search_field_style(c):
+    arrow_icon_path = _get_icon_path("search_field_arrow_down.svg")
     return f"""
     /* ===== COMBOBOX ===== */
     QComboBox {{
@@ -38,7 +48,7 @@ def search_field_style(c):
     }}
 
     QComboBox::down-arrow {{
-        image: url(app/styles/images/icons/search_field_arrow_down.svg);
+        image: url({arrow_icon_path});
         width: 14px;
         height: 14px;
     }}

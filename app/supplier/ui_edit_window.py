@@ -31,7 +31,7 @@ from app.styles.search_field_style import (
 class SupplierEditWindow(QWidget):
     def __init__(self, supplier_id=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
+
         self.supplier_service = SupplierService()
         self.current_supplier_id = supplier_id
         

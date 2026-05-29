@@ -45,7 +45,6 @@ class SupplierDelegate(QStyledItemDelegate):
 class EntryEditWindow(QWidget):
     def __init__(self, entry_id=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.stock_service = StockService()
         self.supplier_service = SupplierService()
         self.current_entry_id = entry_id

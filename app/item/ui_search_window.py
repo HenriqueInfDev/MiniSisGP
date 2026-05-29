@@ -29,7 +29,6 @@ class ItemSearchWindow(QWidget):
     
     def __init__(self, selection_mode=False, item_type_filter=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.item_service = ItemService()
         self.edit_window = None # Para manter referência da janela de edição
         self.selection_mode = selection_mode

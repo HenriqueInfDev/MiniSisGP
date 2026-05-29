@@ -26,7 +26,6 @@ from app.styles.input_styles import (
 class SaleSearchWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.sale_service = SaleService()
         self.edit_window = None
         self.setWindowTitle("Pesquisa de Saídas de Produto")

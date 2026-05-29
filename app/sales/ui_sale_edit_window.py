@@ -26,7 +26,7 @@ from app.styles.input_styles import (
 class SaleEditWindow(QWidget):
     def __init__(self, sale_id=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
+
         self.sale_service = SaleService()
         self.current_sale_id = sale_id
         self.search_item_window = None

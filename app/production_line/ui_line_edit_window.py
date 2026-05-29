@@ -28,7 +28,6 @@ from app.styles.search_field_style import (
 class LineEditWindow(QWidget):
     def __init__(self, line_id=None, parent=None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.parent = parent  # To refresh the list view
         self.current_line_id = line_id
         self.search_item_window = None
