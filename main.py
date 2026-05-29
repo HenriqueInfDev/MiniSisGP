@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
 
     def _resolve_icon(self, icon_name):
         project_root = os.path.abspath(os.path.dirname(__file__))
-        return os.path.join(project_root, "app", "styles", "images", "icons", icon_name)
+        return os.path.join(project_root, "app", "images", "icons", icon_name)
 
     def setup_menus(self):
         menu_bar = self.menuBar()
@@ -45,10 +45,10 @@ class MainWindow(QMainWindow):
         registers_menu = menu_bar.addMenu("&Cadastros")
         
         from app.item.ui_search_window import ItemSearchWindow
-        self._add_menu_action(registers_menu, "Produtos", "item_search_window", ItemSearchWindow, 'registro_produto_icon.svg')
+        self._add_menu_action(registers_menu, "Produtos", "item_search_window", ItemSearchWindow, 'registro_produto_icon.svg', "Pesquisar e gerenciar produtos")
         
         from app.supplier.ui_search_window import SupplierSearchWindow
-        self._add_menu_action(registers_menu, "Fornecedores", "supplier_search_window", SupplierSearchWindow, 'fornecedor_registro.svg')
+        self._add_menu_action(registers_menu, "Fornecedores", "supplier_search_window", SupplierSearchWindow, 'fornecedor_registro.svg', "Pesquisar e gerenciar fornecedores")
         
         registers_menu.addSeparator()
 
@@ -59,20 +59,20 @@ class MainWindow(QMainWindow):
         movement_menu = menu_bar.addMenu("&Movimento")
         
         from app.stock.ui_entry_search_window import EntrySearchWindow
-        self._add_menu_action(movement_menu, "Entrada de Insumos", "stock_entry_window", EntrySearchWindow, 'entrada_insumos.svg')
+        self._add_menu_action(movement_menu, "Entrada de Insumos", "stock_entry_window", EntrySearchWindow, 'entrada_insumo.svg', "Registrar entrada de insumos")
 
         movement_menu.addSeparator()
 
         from app.production_line.ui_line_list_window import LineListWindow
-        self._add_menu_action(movement_menu, "Linhas de Produção", "line_list_window", LineListWindow, 'linha_producao_icon.svg')
+        self._add_menu_action(movement_menu, "Linhas de Produção", "line_list_window", LineListWindow, 'linha_producao_icon.svg', "Gerenciar linhas de produção")
         
         from app.production.ui_op_search_window import OPSearchWindow
-        self._add_menu_action(movement_menu, "Ordem de Produção", "op_search_window", OPSearchWindow, 'order_producao.svg')
+        self._add_menu_action(movement_menu, "Ordem de Produção", "op_search_window", OPSearchWindow, 'ordem_producao_icon.svg', "Gerenciar ordens de produção")
         
         movement_menu.addSeparator()
 
         from app.sales.ui_sale_search_window import SaleSearchWindow
-        self._add_menu_action(movement_menu, "Saída de Produtos", "sale_search_window", SaleSearchWindow, 'saida_produtos.svg')
+        self._add_menu_action(movement_menu, "Saída de Produtos", "sale_search_window", SaleSearchWindow, 'saida_produtos_icon.svg', "Registrar saída de produtos")
 
         # Menu Relatórios
         reports_menu = menu_bar.addMenu("&Relatórios")
@@ -114,10 +114,12 @@ class MainWindow(QMainWindow):
         # Menu Configurações
         # settings_menu = menu_bar.addMenu("&Configurações")
 
-    def _add_menu_action(self, menu, text, window_name, window_class, icon_name=None):
+    def _add_menu_action(self, menu, text, window_name, window_class, icon_name=None, tooltip=None):
         action = QAction(text, self)
         if icon_name:
             action.setIcon(QIcon(self._resolve_icon(icon_name)))
+        if tooltip:
+            action.setToolTip(tooltip)
         action.triggered.connect(partial(self._open_window, window_name, window_class))
         menu.addAction(action)
 
@@ -131,8 +133,11 @@ class MainWindow(QMainWindow):
 
     def setup_toolbar(self):
         from app.item.ui_search_window import ItemSearchWindow
-        from app.reports.ui.stock_reports import StockReportWindow
+        from app.stock.ui_entry_search_window import EntrySearchWindow
         from app.supplier.ui_search_window import SupplierSearchWindow
+        from app.production_line.ui_line_list_window import LineListWindow
+        from app.production.ui_op_search_window import OPSearchWindow
+        from app.sales.ui_sale_search_window import SaleSearchWindow
 
         toolbar = QToolBar("Ações Rápidas")
         toolbar.setMovable(False)
@@ -144,20 +149,33 @@ class MainWindow(QMainWindow):
             "QToolButton:checked { background-color: #E0E7FF; }"
         )
 
-        dashboard_action = QAction(QIcon(self._resolve_icon('home.svg')), "Dashboard", self)
         products_action = QAction(QIcon(self._resolve_icon('registro_produto_icon.svg')), "Produtos", self)
-        reports_action = QAction(QIcon(self._resolve_icon('reports.svg')), "Relatórios", self)
+        entry_action = QAction(QIcon(self._resolve_icon('entrada_insumo.svg')), "Entrada de Insumos", self)
         supplier_action = QAction(QIcon(self._resolve_icon('fornecedor_registro.svg')), "Fornecedores", self)
+        line_action = QAction(QIcon(self._resolve_icon('linha_producao_icon.svg')), "Linhas de Produção", self)
+        order_action = QAction(QIcon(self._resolve_icon('ordem_producao_icon.svg')), "Ordem de Produção", self)
+        sale_action = QAction(QIcon(self._resolve_icon('saida_produtos_icon.svg')), "Saída de Produtos", self)
 
-        dashboard_action.triggered.connect(self.show_home)
+        products_action.setToolTip("Gerenciar Produtos")
+        entry_action.setToolTip("Registrar Entrada de Insumos")
+        supplier_action.setToolTip("Gerenciar Fornecedores")
+        line_action.setToolTip("Gerenciar Linhas de Produção")
+        order_action.setToolTip("Gerenciar Ordens de Produção")
+        sale_action.setToolTip("Registrar Saída de Produtos")
+
         products_action.triggered.connect(partial(self._open_window, "item_search_window", ItemSearchWindow))
-        reports_action.triggered.connect(partial(self._open_window, "stock_report_window", lambda: StockReportWindow("Estoque Atual")))
+        entry_action.triggered.connect(partial(self._open_window, "stock_entry_window", EntrySearchWindow))
         supplier_action.triggered.connect(partial(self._open_window, "supplier_search_window", SupplierSearchWindow))
+        line_action.triggered.connect(partial(self._open_window, "line_list_window", LineListWindow))
+        order_action.triggered.connect(partial(self._open_window, "op_search_window", OPSearchWindow))
+        sale_action.triggered.connect(partial(self._open_window, "sale_search_window", SaleSearchWindow))
 
-        toolbar.addAction(dashboard_action)
         toolbar.addAction(products_action)
-        toolbar.addAction(reports_action)
+        toolbar.addAction(entry_action)
         toolbar.addAction(supplier_action)
+        toolbar.addAction(line_action)
+        toolbar.addAction(order_action)
+        toolbar.addAction(sale_action)
         toolbar.addSeparator()
 
         self.addToolBar(Qt.TopToolBarArea, toolbar)
